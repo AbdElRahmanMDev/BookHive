@@ -1,13 +1,17 @@
 ﻿
 
 
+using BookHive.Web.consts;
 using BookHive.Web.Core.Models;
 using BookHive.Web.Core.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using System.Security.Claims;
 
 namespace BookHive.Web.Controllers
 {
+    [Authorize(Roles =AppRoles.Archieve)]
     public class AuthorController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -40,6 +44,7 @@ namespace BookHive.Web.Controllers
         {
             Author author =_mapper.Map<Author>(authorFormView);
             author.CreatedOn = DateTime.Now;
+            author.CreatedById=User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             _context.Authors.Add(author);
             _context.SaveChanges();
             AuthorViewModel authorViewModel=_mapper.Map<AuthorViewModel>(author);
@@ -71,6 +76,7 @@ namespace BookHive.Web.Controllers
             }
             author=_mapper.Map(authorFormView,author);
             author.LastUpdateOn = DateTime.Now;
+            author.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             _context.SaveChanges();
             AuthorViewModel authorViewModel=_mapper.Map<AuthorViewModel>(author);
             return PartialView("_AuthorRow", authorViewModel);
@@ -85,6 +91,7 @@ namespace BookHive.Web.Controllers
             }
             author.LastUpdateOn= DateTime.Now;
             author.IsDeleted=!author.IsDeleted;
+            author.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             _context.SaveChanges();
             return Ok(author.LastUpdateOn.ToString());
         }

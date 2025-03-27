@@ -1,9 +1,13 @@
-﻿using BookHive.Web.Core.Models;
+﻿using BookHive.Web.consts;
+using BookHive.Web.Core.Models;
 using BookHive.Web.Core.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BookHive.Web.Controllers
 {
+    [Authorize(Roles = AppRoles.Archieve)]
     public class BookCopiesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -46,8 +50,9 @@ namespace BookHive.Web.Controllers
             }
             var NewCopy = new BookCopy()
             {
-                EditionNumber=bookCopy.EditionNumber,
-                IsAvailableForRental=book.IsAvailableForRental? bookCopy.IsAvailableForRental : false,
+                EditionNumber = bookCopy.EditionNumber,
+                IsAvailableForRental = book.IsAvailableForRental ? bookCopy.IsAvailableForRental : false,
+                CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value
             };
             book.Copies.Add(NewCopy);
         

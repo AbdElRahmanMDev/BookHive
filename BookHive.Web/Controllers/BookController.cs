@@ -2,14 +2,17 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 using System.IO;
 using System.Linq.Dynamic.Core;
+using System.Security.Claims;
 
 namespace BookHive.Web.Controllers
 {
+    [Authorize(Roles = AppRoles.Archieve)]
     public class BookController : Controller
     {
 
@@ -150,8 +153,8 @@ namespace BookHive.Web.Controllers
                 //book.ImageUrlThumb = ConvertUrl(book.ImageUrl);
                 //book.ImagePublicId = result.PublicId;
             }
-
-            foreach(var category in model.SelectedCategories)
+            book.CreatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            foreach (var category in model.SelectedCategories)
             {
                 book.Categories.Add(new BookCategory()
                 {
