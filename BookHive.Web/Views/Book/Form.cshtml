@@ -1,0 +1,182 @@
+﻿
+
+
+@model BookFormViewModel
+@{
+	ViewData["Title"] = "Book Form";
+}
+
+
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class=card-title>@(Model.Id.Equals(0)?"Add":"Edit") Book </h3>
+    </div>
+    <div class="card-body">
+      <form method="post" asp-controller="Book"  enctype="multipart/form-data" id="Form">
+            @if (Model.Id > 0)
+            {
+                <input type="hidden" asp-for=Id />
+            }
+            <div class="mb-1">
+                <!--begin::Image input-->
+                <div class="image-input image-input-empty" data-kt-image-input="true" style="background-image: url(@(string.IsNullOrEmpty(Model.ImageUrl)?"/images/no-book.jpg":Model.ImageUrlThumb));">
+                    <!--begin::Image preview wrapper-->
+                    <div class="image-input-wrapper w-125px h-125px"></div>
+                    <!--end::Image preview wrapper-->
+                    <!--begin::Edit button-->
+                    <label class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow"
+                           data-kt-image-input-action="change"
+                           data-bs-dismiss="click"
+                           title="Change avatar">
+                        <i class="fa-solid fa-pencil"></i>  <!-- Should work if icons are enabled -->
+                        <!--begin::Inputs-->
+                
+                        
+                        <input type="file" asp-for="Image" accept=".png, .jpg, .jpeg" />
+                        <input type="hidden" name="avatar_remove" />
+                        <!--end::Inputs-->
+                    </label>
+                    <!--end::Edit button-->
+                    <!--begin::Cancel button-->
+                    <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow"
+                          data-kt-image-input-action="cancel"
+                          data-bs-dismiss="click"
+                          title="Cancel avatar">
+                        <i class="fa-solid fa-xmark"></i>  <!-- Standard Close Icon -->
+                    </span>
+                    <!--end::Cancel button-->
+                    <!--begin::Remove button-->
+                    <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow"
+                          data-kt-image-input-action="remove"
+                          data-bs-dismiss="click"
+                          title="Remove avatar">
+                        <i class="fa-solid fa-xmark"></i>  <!-- Standard Close Icon -->
+                    </span>
+                    <!--end::Remove button-->
+                </div>
+                <!--end::Image input-->
+                <span asp-validation-for="Image" class="text-danger"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row mt-5">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form-floating mb-2">
+                                    <input class="form-control" asp-for="Title" />
+                                    <label asp-for="Title"></label>
+                                </div>
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>  
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form-floating mb-2">
+                                    <select class="form-select  js-select2" id="Author" data-placeholder="Select Authors" asp-for="AuthorId" asp-items="@Model.Authors">
+                                        <option value="">Select Author</option>
+                                    </select>
+                                    <label asp-for="AuthorId"></label>
+                                </div>
+                                <span asp-validation-for="AuthorId" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form mb-2">
+                                    <select class="form-select js-select2" data-placeholder="Select Categories" asp-for="SelectedCategories" asp-items="@Model.Categories">
+                                        <option>Select Categories</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="SelectedCategories" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form-floating mb-2">
+                                    <input class="form-control" asp-for="Publisher" />
+                                    <label asp-for="Publisher"></label>
+                                </div>
+                                <span asp-validation-for="Publisher" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form-floating mb-2">
+                                    <input type="text" class="form-control js-datepicker" asp-for="PublishingDate" />
+                                    <label asp-for="PublishingDate"></label>
+                                </div>
+                                <span asp-validation-for="PublishingDate" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" asp-for="IsAvailableForRental">
+                                <label class="form-check-label" asp-for="IsAvailableForRental">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form-floating mb-2">
+                                    <input type="text" class="form-control" asp-for="Hall" />
+                                    <label asp-for="Hall"></label>
+                                </div>
+                                <span asp-validation-for="Hall" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-5">
+                                <div class="form">
+                                    <textarea class="form-control js-tinymce" placeholder="Description" asp-for="Description"></textarea>
+                                </div>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--end::Image input-->
+         
+            
+
+
+      </form>
+
+    </div>
+
+    <div class="card-footer">
+        <button type="submit" class="btn btn-primary" form="Form">Save</button>
+        <a class="btn btn-light text-primary ms-3" asp-action="Index">Cancel</a>
+    </div>
+</div>
+
+@section Scripts {
+	<script src="~/tinymce/tinymce.bundle.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,28 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+
+.form-floating > .form-select {
+    padding-top: 2.15rem;
+    padding-bottom: 0.225rem;
+}
+
+.dt-spinner + div {
+    display: none !important;
+}

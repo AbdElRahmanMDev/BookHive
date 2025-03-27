@@ -1,0 +1,9 @@
+﻿global using System.ComponentModel.DataAnnotations;
+global using AutoMapper;
+global using BookHive.Web.Core.Models;
+global using BookHive.Web.Core.ViewModels;
+global using BookHive.Web.Data;
+global using BookHive.Web.Filters;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
+global using BookHive.Web.wwwroot.Settings;
