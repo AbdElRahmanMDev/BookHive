@@ -1,7 +1,12 @@
 ﻿
 
+using BookHive.Web.consts;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
 namespace BookHive.Web.Controllers
 {
+    [Authorize(Roles = AppRoles.Archieve)]
     public class CategoriesController : Controller
     {
         private readonly  ApplicationDbContext _context;
@@ -32,7 +37,8 @@ namespace BookHive.Web.Controllers
                 return BadRequest();
             }
             var category = _mapper.Map<Category>(categoryFormView);
-                _context.categories.Add(category);
+            category.CreatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            _context.categories.Add(category);
                 _context.SaveChanges();
             var categoryView = _mapper.Map<CategoryViewModel>(category);
             return PartialView("_CategoryRow", categoryView);
@@ -63,6 +69,7 @@ namespace BookHive.Web.Controllers
             //category.Name=categoryFormViewModel.Name;
             category=_mapper.Map(categoryFormViewModel,category);
             category.LastUpdateOn=DateTime.Now;
+            category.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             _context.SaveChanges();
             var categoryView = _mapper.Map<CategoryViewModel>(category);
             return PartialView("_CategoryRow", categoryView);
@@ -77,6 +84,7 @@ namespace BookHive.Web.Controllers
                 return NotFound();
             }
             category.IsDeleted=!category.IsDeleted;
+            category.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             category.LastUpdateOn= DateTime.Now;
             _context.SaveChanges();
             return Ok(category.LastUpdateOn.ToString());
