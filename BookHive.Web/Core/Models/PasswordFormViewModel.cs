@@ -4,6 +4,7 @@ namespace BookHive.Web.Core.Models
 {
     public class PasswordFormViewModel
     {
+       
         public string? Id { get; set; }
 
         [StringLength(100, ErrorMessage = Validationscs.Password, MinimumLength = 8)]

@@ -16,9 +16,5 @@
                  
         public DateTime? LastUpdateOn { get; set; }
 
-            
-
-
-
     }
 }

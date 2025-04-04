@@ -18,7 +18,7 @@ namespace BookHive.Web.consts
             var user=await userManager.FindByEmailAsync(admin.Email);
             if(user == null)
             {
-                await userManager.CreateAsync(admin,"P@ssword123");
+                await userManager.CreateAsync(admin, "P@ssword123");
                 await userManager.AddToRoleAsync(admin,AppRoles.Admin);
             }
         }

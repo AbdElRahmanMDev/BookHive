@@ -95,6 +95,7 @@ namespace BookHive.Web.Controllers
             copy.EditionNumber = model.EditionNumber;
             copy.IsAvailableForRental = copy.Book!.IsAvailableForRental && model.IsAvailableForRental;
             copy.LastUpdateOn = DateTime.Now;
+            copy.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
             _context.SaveChanges();
 
@@ -114,6 +115,7 @@ namespace BookHive.Web.Controllers
 
             copy.LastUpdateOn = DateTime.Now;
             copy.IsDeleted=!copy.IsDeleted;
+            copy.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             _context.SaveChanges(); 
 
             return Ok(copy.LastUpdateOn);

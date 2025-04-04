@@ -251,7 +251,6 @@ $(document).ready(function () {
     });
     $("body").delegate('.js-toggle-status', 'click', function () {
         var btn = $(this);
-
         bootbox.confirm({
             message: "Are you sure that you need to toggle the state?",
             buttons: {
@@ -311,7 +310,6 @@ $(document).ready(function () {
             }
         });
     });
-
 
     $(".js-signout").on('click', function () {
         $('#SignOut').submit();

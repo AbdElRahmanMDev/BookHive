@@ -261,7 +261,7 @@ namespace BookHive.Web.Controllers
             book = _mapper.Map(model, book);
             //book.ImageUrlThumb = ConvertUrl(book.ImageUrl!);
             //book.ImagePublicId = imagePublicId;
-
+            book.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
             foreach (var category in model.SelectedCategories)
             {
@@ -297,6 +297,7 @@ namespace BookHive.Web.Controllers
                 return NotFound();
             }
             book.IsDeleted=!book.IsDeleted;
+            book.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             book.LastUpdateOn=DateTime.Now;
             _context.SaveChanges();
             return Ok(book.LastUpdateOn.ToString());

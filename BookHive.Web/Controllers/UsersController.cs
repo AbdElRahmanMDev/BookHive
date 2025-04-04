@@ -36,16 +36,16 @@ namespace BookHive.Web.Controllers
         [HttpGet]
         public async  Task<IActionResult> Create()
         {
-     
+
             UserFormViewModel userFormView = new UserFormViewModel()
             {
-                Roles= await _roleManager.Roles.Select(r=>new SelectListItem
+                Roles = await _roleManager.Roles.Select(r => new SelectListItem
                 {
-                    Text= r.Name,
-                    Value=r.Name,
+                    Text = r.Name,
+                    Value = r.Name,
                 }).ToListAsync()
             };
-            return PartialView("_form",userFormView);
+            return PartialView("_form", userFormView);
         }
 
         [HttpPost]
@@ -75,7 +75,7 @@ namespace BookHive.Web.Controllers
             return BadRequest(string.Join(',',result.Errors.Select(x=>x.Description)));
         }
 
-
+      
 
         public async Task<IActionResult> checkEmail(UserFormViewModel userFormViewModel)
         {
