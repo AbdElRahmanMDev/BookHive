@@ -8,6 +8,7 @@ using BookHive.Web.Core.Mapping;
 using UoN.ExpressiveAnnotations.NetCore.DependencyInjection;
 using BookHive.Web.consts;
 using BookHive.Web.Seeds;
+using BookHive.Web.TagHelpers;
 namespace BookHive.Web
 {
     public class Program
@@ -30,6 +31,13 @@ namespace BookHive.Web
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultUI()
                 .AddDefaultTokenProviders();
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                //// Default Lockout settings.
+                //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                //options.Lockout.MaxFailedAccessAttempts = 5;
+            });
+            builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
             builder.Services.AddControllersWithViews();
             builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(MappingProfile)));
             builder.Services.AddExpressiveAnnotations();

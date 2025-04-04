@@ -291,6 +291,40 @@ $(document).ready(function () {
             }
         });
     });
+    $("body").delegate('.js-confirm', 'click', function () {
+        var btn = $(this);
+        bootbox.confirm({
+            message: btn.data('message'),
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-secondary'
+                }
+            },
+            callback: function () {
+                if (result) {
+                    $.post({
+                        url: btn.data('url'),
+                        data: {
+                            '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (data) {
+                           
+                            showSuccessMeesage();
+                        },
+                        error: function () {
+                            showErrorMessage();
+                        }
+                    });
+                }
+            }
+        });
+    });
+
 
     $("body").delegate('.js-password', 'click', function () {
         var title = $(this).data("title");

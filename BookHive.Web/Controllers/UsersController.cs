@@ -216,7 +216,20 @@ namespace BookHive.Web.Controllers
             return BadRequest(string.Join(',', result.Errors.Select(e => e.Description)));
         }
 
-        //AQAAAAEAACcQAAAAEKvfVcTNpAb+mGNhS2sa7tUkjq91HrtSuLXYaI6nPtgytFMoMNsUfnPiIsEkChFSbg==
-        //AQAAAAEAACcQAAAAEOJue/9i1fmiGQ5J1gRziwYdjxWmD0051Upkl3F541RlLHW24wKM6y+YPkJRh4HteA==
+
+        public async Task<IActionResult> Unlock(string id)
+        {
+            var user=await _userManager.FindByIdAsync(id);
+            if (user is null) { 
+                return NotFound();
+            }
+            var islocked=await _userManager.IsLockedOutAsync(user);
+            if (islocked) {
+                await _userManager.SetLockoutEndDateAsync(user, null);
+            }
+
+            return Ok();
+        }
+
     }
 }
