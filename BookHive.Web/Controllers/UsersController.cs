@@ -1,11 +1,17 @@
 ﻿using BookHive.Web.consts;
 using BookHive.Web.Core.Models;
+using BookHive.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace BookHive.Web.Controllers
 {
@@ -14,19 +20,38 @@ namespace BookHive.Web.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IEmailBodyBuilder _emailBodyBuilder;
+
 
         private readonly IMapper _mapper;
 
-        public UsersController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager)
+        public UsersController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager, IEmailSender emailSender, IWebHostEnvironment webHostEnvironment,IEmailBodyBuilder emailBodyBuilder)
         {
             _userManager = userManager;
             _mapper = mapper;
             _roleManager = roleManager;
+            _emailSender = emailSender;
+            _webHostEnvironment = webHostEnvironment;
+            _emailBodyBuilder = emailBodyBuilder;
         }
 
 
         public async Task<IActionResult> Index()
         {
+            //var filepath = $"{_webHostEnvironment.WebRootPath}/Templates/email.html";
+            //StreamReader sr = new StreamReader(filepath);
+            //var body = sr.ReadToEnd();
+            //sr.Close();
+            //body = body
+            //         .Replace("[imageUrl]", "https://res.cloudinary.com/devcreed/image/upload/v1668732314/icon-positive-vote-1_rdexez.svg")
+            //         .Replace("[header]", "Hey Abdo , Thanks for joining us!")
+            //         .Replace("[url]", "https://www.google.com")
+            //         .Replace("[linkTitle]", "Active Account")
+            //         .Replace("[body]", "please Confirm your email");
+
+            //await _emailSender.SendEmailAsync(email: "abdelrahman.m.elsayedd@gmail.com", "Test Email", body);
             var users=await _userManager.Users.ToListAsync();
 
             var ViewModel = _mapper.Map<IEnumerable<UserViewModel>>(users);
@@ -68,6 +93,22 @@ namespace BookHive.Web.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRolesAsync(user,model.SelectedRoles);
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    pageHandler: null,
+                    values: new { area = "Identity", userId = user.Id, code },
+                    protocol: Request.Scheme);
+
+
+              var body = _emailBodyBuilder.GetEmailBody("https://res.cloudinary.com/devcreed/image/upload/v1668732314/icon-positive-vote-1_rdexez.svg",
+              $"Hey {user.FullName}, thanks for joining us!",
+              $"{HtmlEncoder.Default.Encode(callbackUrl!)}",
+              "Active Account",
+              "please Confirm your email");
+                await _emailSender.SendEmailAsync(user.Email, "Confirm your email", body);
+
                 var viewModel = _mapper.Map<UserViewModel>(user);
                 return PartialView("_UserRow", viewModel);
             }
@@ -94,25 +135,30 @@ namespace BookHive.Web.Controllers
             return Json(Isvalid);
         }
 
-        
-        public async Task<IActionResult> ToggleState(string id)
+
+        public async Task<IActionResult> ToggleStatus(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if(user is null)
-            {
+
+            if (user is null)
                 return NotFound();
-            }
+
             user.IsDeleted = !user.IsDeleted;
-            user.LastUpdateOn=DateTime.Now;
             user.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-            var result = await _userManager.UpdateAsync(user);
-            if (result.Succeeded)
+            user.LastUpdateOn = DateTime.Now;
+
+            await _userManager.UpdateAsync(user);
+
+            if (user.IsDeleted)
+                await _userManager.UpdateSecurityStampAsync(user);
+            if (user.IsDeleted)
             {
-                var model = _mapper.Map<UserViewModel>(user);
-                return Ok(model.LastUpdateOn.ToString());
+                await _userManager.UpdateSecurityStampAsync(user);
             }
-            return BadRequest(string.Join(',', result.Errors.Select(x => x.Description)));
+
+            return Ok(user.LastUpdateOn.ToString());
         }
+
 
         [HttpGet]
 
@@ -210,6 +256,7 @@ namespace BookHive.Web.Controllers
                 var roles = await _userManager.GetRolesAsync(user);
                 await _userManager.RemoveFromRolesAsync(user, roles);
                 await _userManager.AddToRolesAsync(user, model.SelectedRoles);
+                await _userManager.UpdateSecurityStampAsync(user);
                 var modelView = _mapper.Map<UserViewModel>(user);
                 return PartialView("_UserRow", modelView);
             }

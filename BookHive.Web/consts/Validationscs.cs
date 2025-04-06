@@ -7,7 +7,7 @@
         public const string RequiredField = "Required field";
 
         public const string UniqueErrorMessage = "{0} Must be Unique";
-
+        public const string MaxLength = "Length cannot be more than {1} characters";
         public const string AllowedExtension = ".png .jpeg .jpg  is Allowed Only ";
         public const string MaxSize = "The file cannot be more than 2MB ";
         public const string BookAuthorError = "Book with same Author is not Allowed";
@@ -21,6 +21,8 @@
         public const string InvalidUsername = "Username can only contain letters or digits.";
         public const string OnlyNumbersAndLetters = "Only Arabic/English letters or digits are allowed.";
         public const string DenySpecialCharacters = "Special characters are not allowed.";
+        public const string InvalidMobileNumber = "Invalid mobile number.";
+
 
     }
 }

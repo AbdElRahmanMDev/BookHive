@@ -7,3 +7,5 @@ global using BookHive.Web.Filters;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using BookHive.Web.wwwroot.Settings;
+global using Microsoft.AspNetCore.Authorization;
+global using System.Security.Claims;

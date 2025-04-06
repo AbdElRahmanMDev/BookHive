@@ -1,4 +1,5 @@
 ﻿using BookHive.Web.consts;
+using BookHive.Web.Services;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Humanizer;
@@ -22,11 +23,18 @@ namespace BookHive.Web.Controllers
         private List<string> _allowedExtensions = new() { ".jpg", ".png", ".jpeg" };
         private int _maxAllowedSize = 2097152;
         private readonly Cloudinary _cloudinary;
-        public BookController(ApplicationDbContext context,IMapper mapper, IWebHostEnvironment environment,IOptions<CloudinarySettings> options)
+        private readonly IImageService _imageService;
+        public BookController(ApplicationDbContext context
+            ,IMapper mapper,
+            IWebHostEnvironment environment
+            ,IOptions<CloudinarySettings> options,
+            IImageService imageService
+            )
         {
             _context = context;
             _mapper = mapper;
             _environment = environment;
+            _imageService = imageService;   
             var account = new Account()
             {
                 ApiKey=options.Value.APIKey,
@@ -107,39 +115,24 @@ namespace BookHive.Web.Controllers
 
             if(model.Image is not null)
             {
-                var extension = Path.GetExtension(model.Image.FileName);
-                if (!_allowedExtensions.Contains(extension))
+                var imageName = $"{Guid.NewGuid}{Path.GetExtension(model.Image.FileName)}";
+
+                var result = await _imageService.UploadAsync(model.Image, imageName, "/images/books/", true);
+
+                if (!result.IsUploaded)
                 {
-                    //Validation depends on business rules
-                    ModelState.AddModelError(nameof(model.Image), Validationscs.AllowedExtension);
+                    ModelState.AddModelError(nameof(model.Image), result.errorMessage!);
                     return View("Form", PopulateViewModel(model));
                 }
-                if (model.Image.Length>_maxAllowedSize)
-                {
-                    ModelState.AddModelError(nameof(model.Image), Validationscs.MaxSize);
-                    return View("Form", PopulateViewModel(model));
-                }
+             
+                    book.ImageUrl = $"/images/books/{imageName}";
+                    book.ImageUrlThumb = $"/images/books/thumb/{imageName}";
+                
 
 
-                //The controller receives the image in the model.Image property(IFormFile).
-                //The server constructs the destination path(path).
-                //It creates/ overwrites a file at that location(File.Create(path)).
-                //It copies the uploaded file contents to the new file(CopyToAsync(stream)).
-                var ImageName = $"{Guid.NewGuid()}{extension}";
-                var path = Path.Combine($"{_environment.WebRootPath}/images/books", ImageName);
-                var pathThumb = Path.Combine($"{_environment.WebRootPath}/images/books/Thumb", ImageName);
-                using var stream = System.IO.File.Create(path);
-                await model.Image.CopyToAsync(stream);
-                stream.Dispose();
-                book.ImageUrl = $"/images/books/{ImageName}";
-                book.ImageUrlThumb = $"/images/books/Thumb/{ImageName}";
+                
 
-                //For saving thumb Image in thumb folder 
-                using var image=Image.Load(model.Image.OpenReadStream());
-                var ratio = (float)image.Width / 200;
-                var height = image.Height / ratio;
-                image.Mutate(i => i.Resize(width: 200, height: (int)height));
-                image.Save(pathThumb);
+               
 
 
                 //using var stream = model.Image.OpenReadStream();
@@ -206,26 +199,20 @@ namespace BookHive.Web.Controllers
             {
                 if (!string.IsNullOrEmpty(book.ImageUrl))
                 {
-                    var oldImage =$"{_environment.WebRootPath}{book.ImageUrl}";
-                    var oldImageThumb =$"{_environment.WebRootPath}{book.ImageUrlThumb}";
-                    if (System.IO.File.Exists(oldImage))
-                        System.IO.File.Delete(oldImage);
-
-                    if (System.IO.File.Exists(oldImageThumb))
-                        System.IO.File.Delete(oldImageThumb);
+                  _imageService.Delete(book.ImageUrl,book.ImageUrlThumb);
                     //await _cloudinary.DeleteResourcesAsync(book.ImagePublicId);
                 }
-                var extension = Path.GetExtension(model.Image.FileName);
-                if (!_allowedExtensions.Contains(extension))
+                var imageName = $"{Guid.NewGuid}{Path.GetExtension(model.Image.FileName)}";
+
+                var result = await _imageService.UploadAsync(model.Image, imageName, "/images/books/", true);
+
+                if (!result.IsUploaded)
                 {
-                    ModelState.AddModelError(nameof(model.Image), Validationscs.AllowedExtension);
+                    ModelState.AddModelError(nameof(model.Image), result.errorMessage!);
                     return View("Form", PopulateViewModel(model));
                 }
-                if (model.Image.Length > _maxAllowedSize)
-                {
-                    ModelState.AddModelError(nameof(model.Image), Validationscs.MaxSize);
-                    return View("Form", PopulateViewModel(model));
-                }
+                model.ImageUrl = $"/images/books/{imageName}";
+                model.ImageUrlThumb = $"/images/books/Thumb/{imageName}";
 
                 //using var stream = model.Image.OpenReadStream();
                 //var imageParams = new ImageUploadParams
@@ -236,21 +223,9 @@ namespace BookHive.Web.Controllers
 
                 //model.ImageUrl = result.SecureUrl.ToString();
                 //imagePublicId = result.PublicId;
-                var ImageName = $"{Guid.NewGuid()}{extension}";
-                var path = Path.Combine($"{_environment.WebRootPath}/images/books", ImageName);
-                var pathThumb = Path.Combine($"{_environment.WebRootPath}/images/books/Thumb", ImageName);
-                using var stream = System.IO.File.Create(path);
-                await model.Image.CopyToAsync(stream);
-                stream.Dispose();
-                model.ImageUrl = $"/images/books/{ImageName}";
-                model.ImageUrlThumb = $"/images/books/Thumb/{ImageName}";
 
-                //For saving thumb Image in thumb folder 
-                using var image = Image.Load(model.Image.OpenReadStream());
-                var ratio = (float)image.Width / 200;
-                var height = image.Height / ratio;
-                image.Mutate(i => i.Resize(width: 200, height: (int)height));
-                image.Save(pathThumb);
+
+
             }
             else if(!string.IsNullOrEmpty(book.ImageUrl))
             {
@@ -307,26 +282,15 @@ namespace BookHive.Web.Controllers
 
         private BookFormViewModel PopulateViewModel(BookFormViewModel? model=null)
         {
+            BookFormViewModel book = model is null ? new BookFormViewModel() : model;
+
             var authors = _context.Authors.Where(x => !x.IsDeleted).OrderBy(x => x.Name).ToList();
             var categories = _context.categories.Where(x => !x.IsDeleted).OrderBy(x => x.Name).ToList();
-            
-            
 
-            if (model == null)
-            {
-                model = new BookFormViewModel()
-                {
-                    Authors = _mapper.Map<IEnumerable<SelectListItem>>(authors),
-                    Categories = _mapper.Map<IEnumerable<SelectListItem>>(categories)
-                };
-            }
-            else
-            {
-                model.Authors = _mapper.Map<IEnumerable<SelectListItem>>(authors);
-                model.Categories = _mapper.Map<IEnumerable<SelectListItem>>(categories);
-            }
+            book.Authors = _mapper.Map<IEnumerable<SelectListItem>>(authors);
+            book.Categories = _mapper.Map<IEnumerable<SelectListItem>>(categories);
             
-            return model;
+            return book;
         }
 
         private string ConvertUrl(string url)

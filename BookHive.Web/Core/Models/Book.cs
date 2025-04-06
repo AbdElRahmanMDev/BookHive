@@ -21,11 +21,6 @@ namespace BookHive.Web.Core.Models
         public string? ImagePublicId { get; set; }
 
         public string Hall { get; set; } = null!;
-
-
-
-
-
         public bool IsAvailableForRental { get; set; }
 
         public string Description { get; set; } = null!;

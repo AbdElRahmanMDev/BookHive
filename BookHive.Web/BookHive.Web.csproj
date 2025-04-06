@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\books\Thumb\" />
+    <Folder Include="wwwroot\images\users\" />
   </ItemGroup>
 
 </Project>

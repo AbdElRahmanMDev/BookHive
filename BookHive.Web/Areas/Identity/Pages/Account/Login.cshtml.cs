@@ -135,6 +135,10 @@ namespace BookHive.Web.Areas.Identity.Pages.Account
                     _logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
+                if (result.IsNotAllowed)
+                {
+                    return RedirectToPage("./ResendEmailConfirmation",new {username=Input.Username});
+                }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");

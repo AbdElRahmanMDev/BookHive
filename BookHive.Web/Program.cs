@@ -9,6 +9,9 @@ using UoN.ExpressiveAnnotations.NetCore.DependencyInjection;
 using BookHive.Web.consts;
 using BookHive.Web.Seeds;
 using BookHive.Web.TagHelpers;
+using BookHive.Web.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using BookHive.Web.Settings;
 namespace BookHive.Web
 {
     public class Program
@@ -37,10 +40,16 @@ namespace BookHive.Web
                 //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 //options.Lockout.MaxFailedAccessAttempts = 5;
             });
+           
+            builder.Services.AddTransient<IImageService, ImageService>();
+            builder.Services.AddTransient<IEmailSender, EmailSender>();
+            builder.Services.AddTransient<IEmailBodyBuilder, EmailBodyBuilder>();
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));   
             builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
             builder.Services.AddControllersWithViews();
             builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(MappingProfile)));
             builder.Services.AddExpressiveAnnotations();
+            builder.Services.Configure<SecurityStampValidatorOptions>(options =>options.ValidationInterval= TimeSpan.Zero);
             builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(nameof(CloudinarySettings)));
             var app = builder.Build();
 
