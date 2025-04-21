@@ -22,11 +22,8 @@
 
         public string Description { get; set; } = null!;
 
-
-
         public ICollection<string> Categories { get; set; } = null!;
         public ICollection<BookCopyViewModel> Copies  { get; set; } = null!;
-
         public bool IsDeleted { get; set; } 
 
 

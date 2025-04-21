@@ -26,3 +26,7 @@ body {
 .dt-spinner + div {
     display: none !important;
 }
+
+.form-control {
+    display: inline;
+}

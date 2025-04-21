@@ -36,7 +36,10 @@ namespace BookHive.Web.Core.Mapping
            .Name)));
 
             CreateMap<BookCopy, BookCopyViewModel>().
-          ForMember(dest => dest.BookTitle, opt => opt.MapFrom(src => src.Book!.Title));
+          ForMember(dest => dest.BookTitle, opt => opt.MapFrom(src => src.Book!.Title)).
+          ForMember(dest => dest.BookId, opt => opt.MapFrom(src => src.BookId)).
+          ForMember(dest => dest.BookThumbnailUrl, opt => opt.MapFrom(src => src.Book!.ImageUrlThumb));
+
 
            
             CreateMap<BookCopyFormViewModel, BookCopy>().ReverseMap();
@@ -46,8 +49,34 @@ namespace BookHive.Web.Core.Mapping
 
             CreateMap<ApplicationUser, UserFormViewModel>().ReverseMap();
 
+            CreateMap<Governorate, SelectListItem>().
+                ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Id)).
+                ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Name)); 
+
+            CreateMap<Area, SelectListItem>().
+                ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Id)).
+                ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Name));
 
 
+            CreateMap<SubscriberFormViewModel, Subscriber>().ReverseMap();
+            CreateMap<Subscriber, SubscriberSearchResultViewModel>()
+               .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
+
+            CreateMap<Subscriber, SubscriberViewModel>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
+                .ForMember(dest => dest.Area, opt => opt.MapFrom(src => src.Area!.Name))
+                .ForMember(dest => dest.Governorate, opt => opt.MapFrom(src => src.Governorate!.Name));
+
+            CreateMap<Subscribtion, SubscriptionViewModel>();
+            //Rental
+
+            CreateMap<Rental, RentalViewModel>()
+                ;
+            CreateMap<RentalCopy, RentalCopyViewModel>();
+
+            CreateMap<RentalCopy, RentalHistoryViewModel>()
+                .ForMember(dest=>dest.Subscriber,opt=>opt.MapFrom(src => $"{src.Rentals!.Subscriber!.FirstName} {src.Rentals.Subscriber.LastName}"))
+                .ForMember(dest=>dest.MobileNumber,opt=>opt.MapFrom(src=>src.Rentals!.Subscriber!.MobileNumber));
         }
     }
 }

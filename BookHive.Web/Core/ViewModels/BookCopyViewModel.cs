@@ -1,4 +1,5 @@
-﻿namespace BookHive.Web.Core.ViewModels
+﻿
+namespace BookHive.Web.Core.ViewModels
 {
     public class BookCopyViewModel
     {
@@ -7,10 +8,14 @@
 
         public string? BookTitle { get; set; }
 
+        public int BookId { get; set; }
+
+        public string? BookThumbnailUrl {  get; set; }
         public bool IsDeleted { get; set; }
 
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
+        public ICollection<RentalCopyViewModel> Rentals { get; set; } = new List<RentalCopyViewModel>();
         public bool IsAvailableForRental { get; set; }
         public int EditionNumber { get; set; }
         public int SerialNumber { get; set; }

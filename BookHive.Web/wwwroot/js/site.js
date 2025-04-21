@@ -28,13 +28,14 @@ function showErrorMessage(message = "Something went wrong!") {
     });
 }
 
-function OnModelBegin() {
-    disabledSubmitButton();
-}
-function disabledSubmitButton() {
-    $('body :submit').attr('disabled', 'disabled');
+
+function disabledSubmitButton(btn) {
+    $(btn).attr('disabled', 'disabled').attr('data-kt-indicator','on');
 } 
 
+function OnModelBegin() {
+    disabledSubmitButton($("#Modal").find(':submit'));
+}
 function select_2(){
     $(".js-select2").select2();
     //Select 2 for validation
@@ -76,7 +77,7 @@ function onModelSuccess(item) {
  
 }
 function OnModelComplete() {
-    $('body :submit').removeAttr('disabled');
+    $('body :submit').removeAttr('disabled').removeAttr('data-kt-indicator');;
 
 }
 //Data Tables
@@ -192,7 +193,7 @@ $(document).ready(function () {
         }
         var Isvalid = $(this).valid();
         if (Isvalid) {
-            disabledSubmitButton();
+            disabledSubmitButton($(this).find(':submit'));
         }
     });
     //select 2 For Drop Down List

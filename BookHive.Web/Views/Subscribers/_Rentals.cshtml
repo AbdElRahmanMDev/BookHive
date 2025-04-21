@@ -1,0 +1,63 @@
+﻿ @model IEnumerable<RentalViewModel>
+
+
+
+<div class="alert  bg-light-info border border-info border-3 border-dashed d-flex flex-column flex-sm-row w-100 p-5 mt-10" style="display:@(Model.Any() ? "none !important" : "unset")" id="Alert">
+    <!--begin::Icon-->
+    <i class="ki-duotone ki-notification-bing fs-2hx text-info me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>                    <!--end::Icon-->
+    <!--begin::Content-->
+    <div class="d-flex flex-column pe-0 pe-sm-10 justify-content-center">
+        <h5 class="mb-0">This is an alert with a thick dashed border</h5>
+        <span>This subscriber has no rentals yet.</span>
+    </div>
+
+</div>
+
+
+<div class="table-responsive" id="RentalsTable" style="display:@(!Model.Any() ? "none !important" :"unset")">
+    <!--begin::Table-->
+    <table class="table align-middle gs-0 gy-4">
+        <!--begin::Table head-->
+        <thead>
+            <tr class="fw-bold text-muted bg-light">
+                <th class="ps-4 min-w-125px rounded-start">Start Date</th>
+                <th class="min-w-125px"># of Copies</th>
+                <th class="min-w-150px">Total Delay (Days)</th>
+                <th class="min-w-150px">Added On (Days)</th>
+                <th class="min-w-125px text-end rounded-end pe-4"></th>
+            </tr>
+        </thead>
+        <!--end::Table head-->
+        <!--begin::Table body-->
+        <tbody>
+            @foreach (var rental in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center ps-3">
+                            @rental.StartDate.ToString("d MMM, yyyy")
+                        </div>
+                    </td>
+                    <td>
+                        @rental.NumberOfCopies
+                    </td>
+                    <td>
+                        @rental.TotalDelays
+                    </td>
+                    <td>
+                        @rental.CreatedOn
+                    </td>
+                    <td class="text-end pe-4">
+                        @if (rental.CreatedOn.Date == DateTime.Today)
+                        {
+                            <a href="javascript:;" class="btn btn-light-danger btn-sm js-cancel-rental" data-id="@rental.Id">Cancel</a>
+                        }
+                        <a class="btn btn-primary btn-sm" asp-action="Details" asp-controller="Rentals" asp-route-id="@rental.Id">Details</a>
+                    </td>
+                </tr>   
+            }
+        </tbody>
+        <!--end::Table body-->
+    </table>
+    <!--end::Table-->
+</div>

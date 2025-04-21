@@ -12,6 +12,10 @@ using BookHive.Web.TagHelpers;
 using BookHive.Web.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using BookHive.Web.Settings;
+using Microsoft.AspNetCore.DataProtection;
+using Hangfire;
+using Hangfire.Dashboard;
+using BookHive.Web.Tasks;
 namespace BookHive.Web
 {
     public class Program
@@ -40,7 +44,8 @@ namespace BookHive.Web
                 //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 //options.Lockout.MaxFailedAccessAttempts = 5;
             });
-           
+
+            builder.Services.AddDataProtection().SetApplicationName(nameof(BookHive));
             builder.Services.AddTransient<IImageService, ImageService>();
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IEmailBodyBuilder, EmailBodyBuilder>();
@@ -49,6 +54,16 @@ namespace BookHive.Web
             builder.Services.AddControllersWithViews();
             builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(MappingProfile)));
             builder.Services.AddExpressiveAnnotations();
+            builder.Services.AddHangfire(x => x.UseSqlServerStorage(connectionString));
+            builder.Services.AddHangfireServer();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("adminsOnly", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireRole(AppRoles.Admin);
+                });
+            });
             builder.Services.Configure<SecurityStampValidatorOptions>(options =>options.ValidationInterval= TimeSpan.Zero);
             builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(nameof(CloudinarySettings)));
             var app = builder.Build();
@@ -83,6 +98,23 @@ namespace BookHive.Web
 
             await DefaultRoles.SeedRolesAsync(roleManger);
             await DefaultUsers.SeedAdminUserAync(userManger);
+
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                DashboardTitle = "BookHive Dashboard",
+                Authorization = new IDashboardAuthorizationFilter[]
+                {
+                    new HangFireAuthorizationFilter("adminsOnly")
+                }
+            });
+
+            var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var emailBody = scope.ServiceProvider.GetRequiredService<IEmailBodyBuilder>();
+            var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
+
+            HangFireTask hangFireTask = new HangFireTask(dbcontext,emailBody,emailSender);
+            RecurringJob.AddOrUpdate(() => hangFireTask.PrepareExpirationAlert(), "0 14 * * *");
+
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");

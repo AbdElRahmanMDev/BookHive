@@ -42,12 +42,19 @@ namespace BookHive.Web.Controllers
         [HttpPost]
         public IActionResult Create(AuthorFormViewModel authorFormView)
         {
+            if (ModelState.IsValid) //When request is send using Ajax Form
+            {
+                return BadRequest();
+            }
             Author author =_mapper.Map<Author>(authorFormView);
             author.CreatedOn = DateTime.Now;
             author.CreatedById=User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+
             _context.Authors.Add(author);
             _context.SaveChanges();
+
             AuthorViewModel authorViewModel=_mapper.Map<AuthorViewModel>(author);
+
             return PartialView("_AuthorRow",authorViewModel);
 
         }

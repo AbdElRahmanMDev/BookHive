@@ -20,7 +20,7 @@ namespace BookHive.Web.Controllers
 
         [HttpGet]
         public IActionResult Create(int bookid)
-        {
+        {   
             var book = _context.Books.Find(bookid);
             if (book is null)
             {
@@ -46,7 +46,7 @@ namespace BookHive.Web.Controllers
             var book = _context.Books.SingleOrDefault(x=>x.Id==bookCopy.BookId);
             if (book is null)
             {
-                return NotFound();
+                   return NotFound();
             }
             var NewCopy = new BookCopy()
             {
@@ -54,6 +54,7 @@ namespace BookHive.Web.Controllers
                 IsAvailableForRental = book.IsAvailableForRental ? bookCopy.IsAvailableForRental : false,
                 CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value
             };
+            //you add new copy through navigation Property in book model
             book.Copies.Add(NewCopy);
         
             _context.SaveChanges();
@@ -62,6 +63,25 @@ namespace BookHive.Web.Controllers
 
             return PartialView("_bookCopyRow", bookviewModel);
         }
+
+        public IActionResult Rentals(int id)
+        {
+            var RentalsCopy = _context.RentalCopies
+                .Include(x => x.Rentals)
+                .ThenInclude(x => x!.Subscriber)
+                .Include(x => x.bookCopy)
+                .Where(x => x.BookCopyId == id)
+                .ToList() ;
+                
+                
+            if (RentalsCopy is null )
+                return NotFound();
+
+            var model = _mapper.Map<IEnumerable<RentalHistoryViewModel>>(RentalsCopy);
+
+            return View(model);
+        }
+
 
         [HttpGet]
         public IActionResult Edit(int id) {

@@ -83,6 +83,7 @@ namespace BookHive.Web.Controllers
             var book = _context.Books.
                 Include(x=>x.Author).
                 Include(x=>x.Copies).
+                ThenInclude(x=>x.Rentals).
                 Include(x=>x.Categories).
                 ThenInclude(x=>x.Category).
                 FirstOrDefault(x => x.Id == id);
@@ -107,8 +108,6 @@ namespace BookHive.Web.Controllers
             if (!ModelState.IsValid)
             {
               ViewBag.Erros = ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage);
-                
-
                 return View("Form", PopulateViewModel(model));
             }
             var book = _mapper.Map<Book>(model);
@@ -127,14 +126,6 @@ namespace BookHive.Web.Controllers
              
                     book.ImageUrl = $"/images/books/{imageName}";
                     book.ImageUrlThumb = $"/images/books/thumb/{imageName}";
-                
-
-
-                
-
-               
-
-
                 //using var stream = model.Image.OpenReadStream();
                 //var imageParams = new ImageUploadParams
                 //{
@@ -163,9 +154,6 @@ namespace BookHive.Web.Controllers
         }
 
         [HttpGet]
-        //first I need to retrive book after getting book I need to map it to FormViewModel
-        //FormViewModel model=PopulateViewModel(model); authorId--->authorId
-        //SelectedCategories--->
         public IActionResult Edit(int id)
         {
             var book = _context.Books.Include(b=>b.Categories).SingleOrDefault(x=>x.Id==id);
@@ -223,9 +211,6 @@ namespace BookHive.Web.Controllers
 
                 //model.ImageUrl = result.SecureUrl.ToString();
                 //imagePublicId = result.PublicId;
-
-
-
             }
             else if(!string.IsNullOrEmpty(book.ImageUrl))
             {
@@ -277,8 +262,6 @@ namespace BookHive.Web.Controllers
             _context.SaveChanges();
             return Ok(book.LastUpdateOn.ToString());
         }
-
-      
 
         private BookFormViewModel PopulateViewModel(BookFormViewModel? model=null)
         {

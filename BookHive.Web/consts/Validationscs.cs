@@ -22,6 +22,24 @@
         public const string OnlyNumbersAndLetters = "Only Arabic/English letters or digits are allowed.";
         public const string DenySpecialCharacters = "Special characters are not allowed.";
         public const string InvalidMobileNumber = "Invalid mobile number.";
+        public const string InvalidSerialNumber = "Invalid Serial Number.";
+        public const string NotAvaialableForRental = "this book/copy is not avalable for Rental";
+        
+        public const string EmptyImage = "Please select an image.";
+        public const string IsBlackListed = "This Subscriber is BlackListed .";
+        public const string InActive = "This Subscriber is InActive .";
+
+        public const string MaxAllowed = "You Reached Maximum Number Of Renatls";
+
+        public const string CopyInRental = "This Copy is In Rental";
+
+        public const string RentalNotAllowedForBlackListed = "Rental Cannot be extended for blackListed subscriber";
+        public const string RentalNotAllowedForInActive = "Rental Cannot be extended for this subscriber before Renewal";
+        public const string ExtendNotAllowed = "Rental Cannot be extended";
+
+        public const string PenaltyShouldBePaid = "Penalty Should BePaid";
+
+
 
 
     }

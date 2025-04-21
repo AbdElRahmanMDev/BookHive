@@ -2,6 +2,7 @@
 
 namespace BookHive.Web.Core.Models
 {
+    [Index(nameof(Title),nameof(AuthorId),IsUnique =true)]
     public class Book : BaseModel
     {
         public int Id { get; set; }
@@ -29,4 +30,6 @@ namespace BookHive.Web.Core.Models
         public ICollection<BookCopy> Copies { get; set; } = new List<BookCopy>();
 
     }
+    
+
 }
