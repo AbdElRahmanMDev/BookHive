@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace BookHive.Web.TagHelpers
 {
-    [HtmlTargetElement("a",Attributes ="active-when")]
-    public class ActiveTag :TagHelper
+    [HtmlTargetElement("a", Attributes = "active-when")]
+    public class ActiveTag : TagHelper
     {
         public string? ActiveWhen { get; set; }
 
@@ -19,7 +19,7 @@ namespace BookHive.Web.TagHelpers
             {
                 return;
             }
-            var currentcontroller = ViewContextData?.RouteData.Values["controller"]?.ToString()??string.Empty;
+            var currentcontroller = ViewContextData?.RouteData.Values["controller"]?.ToString() ?? string.Empty;
             if (currentcontroller!.Equals(ActiveWhen))
             {
                 if (output.Attributes.ContainsName("class"))

@@ -2,19 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using BookHive.Web.Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 
 namespace BookHive.Web.Areas.Identity.Pages.Account
 {
@@ -22,9 +12,9 @@ namespace BookHive.Web.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
-        private  readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger,UserManager<ApplicationUser> userManager)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger, UserManager<ApplicationUser> userManager)
         {
             _signInManager = signInManager;
             _logger = logger;
@@ -68,7 +58,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [Display(Name ="Username/Email")]
+            [Display(Name = "Username/Email")]
             public string Username { get; set; }
 
             /// <summary>
@@ -137,7 +127,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account
                 }
                 if (result.IsNotAllowed)
                 {
-                    return RedirectToPage("./ResendEmailConfirmation",new {username=Input.Username});
+                    return RedirectToPage("./ResendEmailConfirmation", new { username = Input.Username });
                 }
                 else
                 {

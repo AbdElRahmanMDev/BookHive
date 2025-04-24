@@ -1,26 +1,21 @@
-﻿using BookHive.Web.consts;
-using BookHive.Web.Core.Models;
-using BookHive.Web.Core.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+﻿
 
 namespace BookHive.Web.Controllers
 {
     [Authorize(Roles = AppRoles.Archieve)]
     public class BookCopiesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
-        public BookCopiesController(ApplicationDbContext context, IMapper mapper)
+        public BookCopiesController(IApplicationDbContext context, IMapper mapper)
         {
             _context = context;
-            _mapper = mapper;   
+            _mapper = mapper;
         }
 
         [HttpGet]
         public IActionResult Create(int bookid)
-        {   
+        {
             var book = _context.Books.Find(bookid);
             if (book is null)
             {
@@ -29,8 +24,8 @@ namespace BookHive.Web.Controllers
             var ShowRentalInput = book.IsAvailableForRental;
             var BookCopyFormViewModel = new BookCopyFormViewModel()
             {
-                BookId=bookid,
-                ShowRentalInput=ShowRentalInput,
+                BookId = bookid,
+                ShowRentalInput = ShowRentalInput,
             };
 
 
@@ -43,10 +38,10 @@ namespace BookHive.Web.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest();
-            var book = _context.Books.SingleOrDefault(x=>x.Id==bookCopy.BookId);
+            var book = _context.Books.SingleOrDefault(x => x.Id == bookCopy.BookId);
             if (book is null)
             {
-                   return NotFound();
+                return NotFound();
             }
             var NewCopy = new BookCopy()
             {
@@ -56,7 +51,7 @@ namespace BookHive.Web.Controllers
             };
             //you add new copy through navigation Property in book model
             book.Copies.Add(NewCopy);
-        
+
             _context.SaveChanges();
             var bookviewModel = _mapper.Map<BookCopyViewModel>(NewCopy);
 
@@ -71,11 +66,10 @@ namespace BookHive.Web.Controllers
                 .ThenInclude(x => x!.Subscriber)
                 .Include(x => x.bookCopy)
                 .Where(x => x.BookCopyId == id)
-                .ToList() ;
-                
-                
-            if (RentalsCopy is null )
-                return NotFound();
+                .OrderByDescending(x => x.RentalDate)
+                .ToList();
+
+
 
             var model = _mapper.Map<IEnumerable<RentalHistoryViewModel>>(RentalsCopy);
 
@@ -84,25 +78,28 @@ namespace BookHive.Web.Controllers
 
 
         [HttpGet]
-        public IActionResult Edit(int id) {
+        public IActionResult Edit(int id)
+        {
 
             var bookCopy = _context.BookCopies.Include(c => c.Book).SingleOrDefault(c => c.Id == id);
-            if (bookCopy is null) { 
-                
+            if (bookCopy is null)
+            {
+
                 return NotFound();
             }
 
-            var bookCopyForm=_mapper.Map<BookCopyFormViewModel>(bookCopy);
+            var bookCopyForm = _mapper.Map<BookCopyFormViewModel>(bookCopy);
 
             bookCopyForm.IsAvailableForRental = bookCopy.Book!.IsAvailableForRental;
 
-            return PartialView("_form",bookCopyForm);
+            return PartialView("_form", bookCopyForm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
 
-        public IActionResult Edit(BookCopyFormViewModel model) {
+        public IActionResult Edit(BookCopyFormViewModel model)
+        {
 
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -115,7 +112,7 @@ namespace BookHive.Web.Controllers
             copy.EditionNumber = model.EditionNumber;
             copy.IsAvailableForRental = copy.Book!.IsAvailableForRental && model.IsAvailableForRental;
             copy.LastUpdateOn = DateTime.Now;
-            copy.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            copy.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
             _context.SaveChanges();
 
@@ -129,14 +126,15 @@ namespace BookHive.Web.Controllers
         public IActionResult ToggleStatus(int id)
         {
             var copy = _context.BookCopies.Find(id);
-            if (copy is  null) {
+            if (copy is null)
+            {
                 return NotFound();
             }
 
             copy.LastUpdateOn = DateTime.Now;
-            copy.IsDeleted=!copy.IsDeleted;
-            copy.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-            _context.SaveChanges(); 
+            copy.IsDeleted = !copy.IsDeleted;
+            copy.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            _context.SaveChanges();
 
             return Ok(copy.LastUpdateOn);
         }

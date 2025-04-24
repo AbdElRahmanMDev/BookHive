@@ -3,20 +3,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using BookHive.Web.Core.Models;
+using BookHive.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.AspNetCore.Hosting;
-using BookHive.Web.Services;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace BookHive.Web.Areas.Identity.Pages.Account
 {
@@ -27,7 +20,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account
         private readonly IEmailSender _emailSender;
         private readonly IEmailBodyBuilder _emailBodyBuilder;
 
-        public ResendEmailConfirmationModel(UserManager<ApplicationUser> userManager, IEmailSender emailSender,IEmailBodyBuilder emailBodyBuilder)
+        public ResendEmailConfirmationModel(UserManager<ApplicationUser> userManager, IEmailSender emailSender, IEmailBodyBuilder emailBodyBuilder)
         {
             _userManager = userManager;
             _emailSender = emailSender;

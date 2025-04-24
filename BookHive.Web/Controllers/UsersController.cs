@@ -1,21 +1,15 @@
-﻿using BookHive.Web.consts;
-using BookHive.Web.Core.Models;
+﻿
 using BookHive.Web.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
-using System.Numerics;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 
 namespace BookHive.Web.Controllers
 {
-    [Authorize(Roles =AppRoles.Admin)]
+    [Authorize(Roles = AppRoles.Admin)]
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -27,7 +21,7 @@ namespace BookHive.Web.Controllers
 
         private readonly IMapper _mapper;
 
-        public UsersController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager, IEmailSender emailSender, IWebHostEnvironment webHostEnvironment,IEmailBodyBuilder emailBodyBuilder)
+        public UsersController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager, IEmailSender emailSender, IWebHostEnvironment webHostEnvironment, IEmailBodyBuilder emailBodyBuilder)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -52,14 +46,14 @@ namespace BookHive.Web.Controllers
             //         .Replace("[body]", "please Confirm your email");
 
             //await _emailSender.SendEmailAsync(email: "abdelrahman.m.elsayedd@gmail.com", "Test Email", body);
-            var users=await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.ToListAsync();
 
             var ViewModel = _mapper.Map<IEnumerable<UserViewModel>>(users);
             return View(ViewModel);
         }
 
         [HttpGet]
-        public async  Task<IActionResult> Create()
+        public async Task<IActionResult> Create()
         {
 
             UserFormViewModel userFormView = new UserFormViewModel()
@@ -76,8 +70,9 @@ namespace BookHive.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UserFormViewModel model)
         {
-            if (!ModelState.IsValid) {
-                return BadRequest();    
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
             }
 
             ApplicationUser user = new ApplicationUser()
@@ -88,11 +83,11 @@ namespace BookHive.Web.Controllers
                 CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value
             };
 
-           var result= await _userManager.CreateAsync(user,model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRolesAsync(user,model.SelectedRoles);
+                await _userManager.AddToRolesAsync(user, model.SelectedRoles);
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 var callbackUrl = Url.Page(
@@ -102,31 +97,31 @@ namespace BookHive.Web.Controllers
                     protocol: Request.Scheme);
 
 
-              var body = _emailBodyBuilder.GetEmailBody("https://res.cloudinary.com/devcreed/image/upload/v1668732314/icon-positive-vote-1_rdexez.svg",
-              $"Hey {user.FullName}, thanks for joining us!",
-              $"{HtmlEncoder.Default.Encode(callbackUrl!)}",
-              "Active Account",
-              "please Confirm your email");
+                var body = _emailBodyBuilder.GetEmailBody("https://res.cloudinary.com/devcreed/image/upload/v1668732314/icon-positive-vote-1_rdexez.svg",
+                $"Hey {user.FullName}, thanks for joining us!",
+                $"{HtmlEncoder.Default.Encode(callbackUrl!)}",
+                "Active Account",
+                "please Confirm your email");
                 await _emailSender.SendEmailAsync(user.Email, "Confirm your email", body);
 
                 var viewModel = _mapper.Map<UserViewModel>(user);
                 return PartialView("_UserRow", viewModel);
             }
 
-            return BadRequest(string.Join(',',result.Errors.Select(x=>x.Description)));
+            return BadRequest(string.Join(',', result.Errors.Select(x => x.Description)));
         }
 
-      
+
 
         public async Task<IActionResult> checkEmail(UserFormViewModel userFormViewModel)
         {
             var user = await _userManager.FindByEmailAsync(userFormViewModel.Email);
-            var Isvalid=user is null || user.Id.Equals(userFormViewModel.Id);
+            var Isvalid = user is null || user.Id.Equals(userFormViewModel.Id);
             return Json(Isvalid);
         }
 
 
-            
+
         public async Task<IActionResult> checkUserName(UserFormViewModel userFormViewModel)
         {
             var user = await _userManager.FindByNameAsync(userFormViewModel.UserName);
@@ -173,10 +168,10 @@ namespace BookHive.Web.Controllers
             {
                 Id = user.Id
             };
-            return PartialView("_ChangePassword",model);
+            return PartialView("_ChangePassword", model);
         }
 
-       
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(PasswordFormViewModel model)
@@ -216,15 +211,15 @@ namespace BookHive.Web.Controllers
         public async Task<IActionResult> Edit(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if(user is null)
+            if (user is null)
             {
                 return NotFound();
             }
 
-            var model=_mapper.Map<UserFormViewModel>(user);
+            var model = _mapper.Map<UserFormViewModel>(user);
 
-            model.SelectedRoles=await _userManager.GetRolesAsync(user);
-            model.Roles= await _roleManager.Roles.Select(r => new SelectListItem
+            model.SelectedRoles = await _userManager.GetRolesAsync(user);
+            model.Roles = await _roleManager.Roles.Select(r => new SelectListItem
             {
                 Text = r.Name,
                 Value = r.Name,
@@ -237,12 +232,13 @@ namespace BookHive.Web.Controllers
 
         public async Task<IActionResult> Edit(UserFormViewModel model)
         {
-            if (!ModelState.IsValid) {
+            if (!ModelState.IsValid)
+            {
                 ViewBag.Erros = ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage);
                 return BadRequest();
             }
             var user = await _userManager.FindByIdAsync(model.Id);
-            if(user is null)
+            if (user is null)
             {
                 return NotFound();
             }
@@ -250,7 +246,7 @@ namespace BookHive.Web.Controllers
             user.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             user.LastUpdateOn = DateTime.Now;
 
-           var result=await _userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
                 var roles = await _userManager.GetRolesAsync(user);
@@ -266,12 +262,14 @@ namespace BookHive.Web.Controllers
 
         public async Task<IActionResult> Unlock(string id)
         {
-            var user=await _userManager.FindByIdAsync(id);
-            if (user is null) { 
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null)
+            {
                 return NotFound();
             }
-            var islocked=await _userManager.IsLockedOutAsync(user);
-            if (islocked) {
+            var islocked = await _userManager.IsLockedOutAsync(user);
+            if (islocked)
+            {
                 await _userManager.SetLockoutEndDateAsync(user, null);
             }
 

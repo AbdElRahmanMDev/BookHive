@@ -10,7 +10,7 @@ namespace BookHive.Web.Core.ViewModels
 
         public int BookId { get; set; }
 
-        public string? BookThumbnailUrl {  get; set; }
+        public string? BookThumbnailUrl { get; set; }
         public bool IsDeleted { get; set; }
 
         public DateTime CreatedOn { get; set; } = DateTime.Now;

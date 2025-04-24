@@ -1,20 +1,17 @@
-﻿using AspNetCoreGeneratedDocument;
-using BookHive.Web.consts;
-using BookHive.Web.Core.Enums;
-using BookHive.Web.Core.Models;
-using CloudinaryDotNet.Actions;
+﻿
+
+using BookHive.Domain.Enums;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Mvc;
 using System.Linq.Dynamic.Core;
 
 namespace BookHive.Web.Controllers
 {
     public class RentalsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IDataProtector _dataProtector;
-        public RentalsController(ApplicationDbContext context, IMapper mapper,
+        public RentalsController(IApplicationDbContext context, IMapper mapper,
            IDataProtectionProvider dataProtector)
         {
             _context = context;
@@ -71,9 +68,10 @@ namespace BookHive.Web.Controllers
                 return BadRequest(Validationscs.NotAvaialableForRental);
             }
             //Check if copy is In Rental
-            var IsCopyInrental = _context.RentalCopies.Any(x => x.BookCopyId == copy.Id && !x.ReturnDate.HasValue );
-            if (IsCopyInrental) {                          //true  true returnDate ==null  false 
-                                                            
+            var IsCopyInrental = _context.RentalCopies.Any(x => x.BookCopyId == copy.Id && !x.ReturnDate.HasValue);
+            if (IsCopyInrental)
+            {                          //true  true returnDate ==null  false 
+
                 return BadRequest(Validationscs.CopyInRental);
             }
 
@@ -85,10 +83,12 @@ namespace BookHive.Web.Controllers
 
 
         [HttpPost]
-        public IActionResult Create(RentalFormViewModel model) {
+        public IActionResult Create(RentalFormViewModel model)
+        {
 
-            if (!ModelState.IsValid) {
-                return View("Form",model);
+            if (!ModelState.IsValid)
+            {
+                return View("Form", model);
             }
             var SubscriberId = int.Parse(_dataProtector.Unprotect(model.SubscriberKey));
             var subscriber = _context.Subscribers
@@ -122,7 +122,7 @@ namespace BookHive.Web.Controllers
             subscriber.Rentals.Add(rental);
             _context.SaveChanges();
 
-            return RedirectToAction(nameof(Details),new {id=rental.Id});    
+            return RedirectToAction(nameof(Details), new { id = rental.Id });
         }
 
         [HttpPost]
@@ -138,12 +138,12 @@ namespace BookHive.Web.Controllers
             rental.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             _context.SaveChanges();
 
-            var count = _context.RentalCopies.Count(x=>x.RentalId==id);
+            var count = _context.RentalCopies.Count(x => x.RentalId == id);
 
             return Ok(count);
         }
 
-    
+
         public IActionResult Details(int id)
         {
             var Rental = _context.Rentals
@@ -225,7 +225,7 @@ namespace BookHive.Web.Controllers
             if (!string.IsNullOrEmpty(errorMessage))
                 return View("NotAllowedRental", errorMessage);
 
-            var (RentalsError, copies) = ValidateCopies(subscriberId,model.SelectedCopies,rental.Id);
+            var (RentalsError, copies) = ValidateCopies(subscriberId, model.SelectedCopies, rental.Id);
 
             if (!string.IsNullOrEmpty(RentalsError))
                 return View("NotAllowedRental", RentalsError);
@@ -245,7 +245,7 @@ namespace BookHive.Web.Controllers
             var rental = _context.Rentals
                .Include(x => x.RentalCopy)
                .ThenInclude(x => x.bookCopy)
-               .ThenInclude(x=>x!.Book)
+               .ThenInclude(x => x!.Book)
                .SingleOrDefault(x => x.Id == id);
             if (rental is null || rental.CreatedOn.Date == DateTime.Today)
                 return NotFound();
@@ -260,9 +260,9 @@ namespace BookHive.Web.Controllers
             var model = new ReturnFormViewModel()
             {
                 Id = rental.Id,
-                Copies = _mapper.Map<IList<RentalCopyViewModel>>(rental.RentalCopy.Where(x=>!x.ReturnDate.HasValue)).ToList(),
-                SelectedCopies = rental.RentalCopy.Where(x => !x.ReturnDate.HasValue).Select(x => new ReturnCopyViewModel() { Id = x.BookCopyId,IsReturned= x.ExtendedOn.HasValue ?false  : null }).ToList(),
-                AllowExtend=!subscriber!.IsBlackListed 
+                Copies = _mapper.Map<IList<RentalCopyViewModel>>(rental.RentalCopy.Where(x => !x.ReturnDate.HasValue)).ToList(),
+                SelectedCopies = rental.RentalCopy.Where(x => !x.ReturnDate.HasValue).Select(x => new ReturnCopyViewModel() { Id = x.BookCopyId, IsReturned = x.ExtendedOn.HasValue ? false : null }).ToList(),
+                AllowExtend = !subscriber!.IsBlackListed
                 && subscriber.subscribtions.Last().EndDate >= rental.StartDate.AddDays((int)RentalConfiguration.MaxRentalDuration)
                 && rental.StartDate.AddDays((int)RentalConfiguration.RentalDuration) >= DateTime.Today
             };
@@ -292,19 +292,19 @@ namespace BookHive.Web.Controllers
                 .Include(x => x.Rentals)
                 .ThenInclude(x => x.RentalCopy)
                 .SingleOrDefault(x => x.Id == rental.SubscriberId);
-        
-                
-            if(model.SelectedCopies.Any(c=>c.IsReturned.HasValue && !c.IsReturned.Value))
+
+
+            if (model.SelectedCopies.Any(c => c.IsReturned.HasValue && !c.IsReturned.Value))
             {
-                string error=string.Empty;
-                if(subscriber!.IsBlackListed)
-                   error=Validationscs.RentalNotAllowedForBlackListed;
-   
+                string error = string.Empty;
+                if (subscriber!.IsBlackListed)
+                    error = Validationscs.RentalNotAllowedForBlackListed;
+
                 else if (subscriber.subscribtions.Last().EndDate < rental.StartDate.AddDays((int)RentalConfiguration.MaxRentalDuration))
                     error = Validationscs.RentalNotAllowedForInActive;
-                
+
                 else if (rental.StartDate.AddDays((int)RentalConfiguration.RentalDuration) < DateTime.Today)
-                   error= Validationscs.ExtendNotAllowed;
+                    error = Validationscs.ExtendNotAllowed;
 
                 if (!string.IsNullOrEmpty(error))
                 {
@@ -319,15 +319,15 @@ namespace BookHive.Web.Controllers
 
 
             var isUpdated = false;
-            foreach(var copy in model.SelectedCopies)
+            foreach (var copy in model.SelectedCopies)
             {
-                if(!copy.IsReturned.HasValue ) continue;
+                if (!copy.IsReturned.HasValue) continue;
 
-                var currentcopy=rental.RentalCopy.SingleOrDefault(x=>x.bookCopy!.Id==copy.Id);
+                var currentcopy = rental.RentalCopy.SingleOrDefault(x => x.bookCopy!.Id == copy.Id);
 
                 if (currentcopy is null) continue;
 
-                if(copy.IsReturned.HasValue && copy.IsReturned.Value)
+                if (copy.IsReturned.HasValue && copy.IsReturned.Value)
                 {
                     if (currentcopy.ReturnDate.HasValue)
                         continue;
@@ -339,7 +339,7 @@ namespace BookHive.Web.Controllers
                     if (currentcopy.ExtendedOn.HasValue)
                         continue;
                     currentcopy.ExtendedOn = DateTime.Now;
-                    currentcopy.EndDate=currentcopy.RentalDate.AddDays((int)RentalConfiguration.MaxRentalDuration);
+                    currentcopy.EndDate = currentcopy.RentalDate.AddDays((int)RentalConfiguration.MaxRentalDuration);
                     isUpdated = true;
                 }
 
@@ -347,8 +347,8 @@ namespace BookHive.Web.Controllers
 
             if (isUpdated)
             {
-                rental.LastUpdateOn=DateTime.Now;
-                rental.LastUpdatedById= User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+                rental.LastUpdateOn = DateTime.Now;
+                rental.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
                 rental.PenaltyPaid = model.PenaltyPaid;
                 _context.SaveChanges();
             }
@@ -357,7 +357,7 @@ namespace BookHive.Web.Controllers
 
 
         }
-        private (string ErrosMessage, int? maxAllowedCopies) ValidateSubscriber(Subscriber subscriber, int? rentalId= null)
+        private (string ErrosMessage, int? maxAllowedCopies) ValidateSubscriber(Subscriber subscriber, int? rentalId = null)
         {
 
             if (subscriber.IsBlackListed == true)
@@ -368,7 +368,7 @@ namespace BookHive.Web.Controllers
                 return (Validationscs.InActive, null);
 
             var currentRentals = subscriber.Rentals
-                .Where(r=>rentalId==null || r.Id!=rentalId)
+                .Where(r => rentalId == null || r.Id != rentalId)
                 .SelectMany(x => x.RentalCopy).Count(x => !x.ReturnDate.HasValue);
 
             var avaiableCopiesCount = (int)RentalConfiguration.MaxAllowedCopies - currentRentals;
@@ -379,8 +379,8 @@ namespace BookHive.Web.Controllers
             return (string.Empty, avaiableCopiesCount);
 
         }
-       
-        private (string ErrorMessage, ICollection<RentalCopy> copies) ValidateCopies(int SubscriberId, IEnumerable<int> selectedCopies, int? RentalId=null)
+
+        private (string ErrorMessage, ICollection<RentalCopy> copies) ValidateCopies(int SubscriberId, IEnumerable<int> selectedCopies, int? RentalId = null)
         {
             var subscriber = _context.Subscribers.Include(x => x.subscribtions).Include(x => x.Rentals).ThenInclude(x => x.RentalCopy)
                 .SingleOrDefault(x => x.Id == SubscriberId);
@@ -394,7 +394,7 @@ namespace BookHive.Web.Controllers
             var currentsubscriberRentals = _context.Rentals
                 .Include(x => x.RentalCopy)
                 .ThenInclude(x => x.bookCopy)
-                .Where(x => x.SubscriberId == SubscriberId &&(RentalId ==null || x.Id != RentalId))
+                .Where(x => x.SubscriberId == SubscriberId && (RentalId == null || x.Id != RentalId))
                 .SelectMany(x => x.RentalCopy)
                 .Where(x => !x.ReturnDate.HasValue)
                 .Select(x => x.bookCopy!.BookId)
@@ -405,7 +405,7 @@ namespace BookHive.Web.Controllers
             {
                 if (!copy.IsAvailableForRental || !copy.Book!.IsAvailableForRental)
                     return (Validationscs.NotAvaialableForRental, copies);
-                if (copy.Rentals.Any(c => !c.ReturnDate.HasValue && (RentalId==null ||  c.RentalId != RentalId)))
+                if (copy.Rentals.Any(c => !c.ReturnDate.HasValue && (RentalId == null || c.RentalId != RentalId)))
                 {
                     return (Validationscs.CopyInRental, copies);
                 }

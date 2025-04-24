@@ -5,13 +5,13 @@
         public string Subscriber { get; set; } = null!;
         public string MobileNumber { get; set; } = null!;
 
-        [Display(Name ="Start Date")]
+        [Display(Name = "Start Date")]
         public DateTime StartDate { get; set; }
 
-        [Display(Name ="End Date")]
+        [Display(Name = "End Date")]
         public DateTime EndDate { get; set; }
 
-        public DateTime RentalDate { get; set; } 
+        public DateTime RentalDate { get; set; }
         public DateTime? ReturnDate { get; set; }
         public DateTime? ExtendedOn { get; set; }
 

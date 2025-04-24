@@ -11,7 +11,7 @@ namespace BookHive.Web.Core.ViewModels
         public DateTime StartDate { get; set; } = DateTime.Now;
 
 
-        public DateTime CreatedOn { get; set; } 
+        public DateTime CreatedOn { get; set; }
         public bool PenaltyPaid { get; set; }
 
         public IEnumerable<RentalCopyViewModel> RentalCopy { get; set; } = new List<RentalCopyViewModel>();
@@ -22,7 +22,7 @@ namespace BookHive.Web.Core.ViewModels
             {
                 return RentalCopy.Sum(x => x.DelayInDays);
             }
-        } 
+        }
         public int NumberOfCopies
         {
             get

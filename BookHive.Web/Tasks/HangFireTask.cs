@@ -1,17 +1,15 @@
 ﻿using BookHive.Web.Services;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookHive.Web.Tasks
 {
     public class HangFireTask
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IEmailBodyBuilder _emailBodyBuilder;
         private readonly IEmailSender _emailSender;
 
-        public HangFireTask(ApplicationDbContext context,
+        public HangFireTask(IApplicationDbContext context,
             IEmailBodyBuilder emailBodyBuilder,
             IEmailSender emailSender)
         {

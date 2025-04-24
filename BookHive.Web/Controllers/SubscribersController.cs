@@ -1,26 +1,21 @@
-﻿
-
-using BookHive.Web.consts;
-using BookHive.Web.Core.Models;
-using BookHive.Web.Services;
+﻿using BookHive.Web.Services;
 using Hangfire;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Text.Encodings.Web;
+using BookHive.Domain.Entities;
 
 namespace BookHive.Web.Controllers
 {
     public class SubscribersController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IImageService _imageService;
         private readonly IDataProtector _dataProtector;
         private readonly IEmailBodyBuilder _emailBodyBuilder;
         private readonly IEmailSender _emailSender;
-        public SubscribersController(ApplicationDbContext context
+        public SubscribersController(IApplicationDbContext context
             , IMapper mapper
             , IImageService imageService
             , IDataProtectionProvider dataProtector,
@@ -50,10 +45,11 @@ namespace BookHive.Web.Controllers
         public async Task<IActionResult> Renew(string sKey)
         {
             var subscriberId = int.Parse(_dataProtector.Unprotect(sKey));
-            var subscriber = _context.Subscribers.Include(x => x.subscribtions).SingleOrDefault(x=>x.Id==subscriberId);
+            var subscriber = _context.Subscribers.Include(x => x.subscribtions).SingleOrDefault(x => x.Id == subscriberId);
 
-            if (subscriber is  null) {
-                return NotFound();  
+            if (subscriber is null)
+            {
+                return NotFound();
             }
 
             if (subscriber.IsDeleted)
@@ -68,39 +64,39 @@ namespace BookHive.Web.Controllers
             Subscribtion subscribtion = new Subscribtion()
             {
                 CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value,
-                CreatedOn=DateTime.Now,
-                StartDate= StartDate,
-                EndDate=EndDate
+                CreatedOn = DateTime.Now,
+                StartDate = StartDate,
+                EndDate = EndDate
             };
             subscriber.subscribtions.Add(subscribtion);
             _context.SaveChanges();
-           var body = _emailBodyBuilder.GetEmailBody("https://th.bing.com/th/id/OIP.9oxlutL9_TtNvUIxctfT0wHaHa?rs=1&pid=ImgDetMain",
-           $"Hey {subscriber.FirstName}, thanks for joining us!",
-           "https://www.google.com/",
-           "Active Account",
-           "please Confirm your Subscribtion");
+            var body = _emailBodyBuilder.GetEmailBody("https://th.bing.com/th/id/OIP.9oxlutL9_TtNvUIxctfT0wHaHa?rs=1&pid=ImgDetMain",
+            $"Hey {subscriber.FirstName}, thanks for joining us!",
+            "https://www.google.com/",
+            "Active Account",
+            "please Confirm your Subscribtion");
 
             BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(subscriber.Email, "New Subscription", body));
             //BackgroundJob.Schedule(() => _emailSender.SendEmailAsync(subscriber.Email, "New Subscription", body),TimeSpan.FromMinutes(1));
 
 
-           var model= _mapper.Map<SubscriptionViewModel>(subscribtion);
+            var model = _mapper.Map<SubscriptionViewModel>(subscribtion);
             return PartialView("_SubscriptionRow", model);
         }
 
         public IActionResult Details(string id)
         {
-            var subscriberId =int.Parse(_dataProtector.Unprotect(id));
+            var subscriberId = int.Parse(_dataProtector.Unprotect(id));
             var subscriber = _context.Subscribers
                 .Include(s => s.Governorate)
                 .Include(s => s.Area)
-                .Include(s=>s.subscribtions)
+                .Include(s => s.subscribtions)
                 .Include(s => s.Rentals) // filter rentals
-                .ThenInclude(s=>s.RentalCopy)
-                
+                .ThenInclude(s => s.RentalCopy)
+
                 .SingleOrDefault(s => s.Id == subscriberId)
                 ;
-            
+
             if (subscriber is null)
                 return NotFound();
             var viewModel = _mapper.Map<SubscriberViewModel>(subscriber);
@@ -139,15 +135,15 @@ namespace BookHive.Web.Controllers
             subscriber.ImageUrl = $"{imagePath}/{imageName}";
             subscriber.ImageThumbnailUrl = $"{imagePath}/thumb/{imageName}";
             subscriber.CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-            _context.Add(subscriber);
+            _context.Subscribers.Add(subscriber);
             _context.SaveChanges();
 
             Subscribtion subscribtion = new Subscribtion()
             {
                 CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value,
-                CreatedOn=DateTime.Now,
+                CreatedOn = DateTime.Now,
                 StartDate = DateTime.Today,
-                EndDate=DateTime.Today.AddYears(1)
+                EndDate = DateTime.Today.AddYears(1)
             };
             subscriber.subscribtions.Add(subscribtion);
             _context.SaveChanges();
@@ -165,24 +161,24 @@ namespace BookHive.Web.Controllers
             //TODO: Send welcome email
             var subscriberId = _dataProtector.Protect(subscriber.Id.ToString());
 
-            return RedirectToAction(nameof(Details), new { id = subscriberId});
+            return RedirectToAction(nameof(Details), new { id = subscriberId });
         }
 
-        
+
 
         [HttpGet]
         public IActionResult Edit(string id)
         {
-            var subscriberId=int.Parse(_dataProtector.Unprotect(id));
-            var subscriber=_context.Subscribers.FirstOrDefault(x=>x.Id==subscriberId);
+            var subscriberId = int.Parse(_dataProtector.Unprotect(id));
+            var subscriber = _context.Subscribers.FirstOrDefault(x => x.Id == subscriberId);
             if (subscriber is null)
             {
                 return NotFound();
             }
-            var model=_mapper.Map<SubscriberFormViewModel>(subscriber);
-            var viewModel=PopulateModel(model);
+            var model = _mapper.Map<SubscriberFormViewModel>(subscriber);
+            var viewModel = PopulateModel(model);
             viewModel.key = id;
-            return View("Form",viewModel);
+            return View("Form", viewModel);
         }
 
         [HttpPost]
@@ -198,11 +194,11 @@ namespace BookHive.Web.Controllers
                                     s.Email == search.Value
                                 || s.NationalId == search.Value
                                 || s.MobileNumber == search.Value);
-        
+
 
             var viewModel = _mapper.Map<SubscriberSearchResultViewModel>(subscriber);
 
-            if(subscriber is not null)
+            if (subscriber is not null)
                 viewModel.Key = _dataProtector.Protect(subscriber.Id.ToString());
 
             return PartialView("_Result", viewModel);
@@ -216,7 +212,7 @@ namespace BookHive.Web.Controllers
             {
                 return View("Form", PopulateModel(model));
             }
-            var subscriberId =int.Parse(_dataProtector.Unprotect(model.key!));
+            var subscriberId = int.Parse(_dataProtector.Unprotect(model.key!));
             var subscriber = _context.Subscribers.FirstOrDefault(x => x.Id == subscriberId);
             if (subscriber == null)
             {
@@ -265,7 +261,7 @@ namespace BookHive.Web.Controllers
             if (!string.IsNullOrEmpty(mode.key))
                 id = int.Parse(_dataProtector.Unprotect(mode.key));
             var subscriber = _context.Subscribers.SingleOrDefault(x => x.Email == mode.Email);
-          
+
             var IsValid = subscriber is null || subscriber!.Id.Equals(id);
             return Json(IsValid);
         }
@@ -297,7 +293,7 @@ namespace BookHive.Web.Controllers
         {
             RecurringJob.AddOrUpdate(() => PrepareExpirationAlert(), "0 14 * * *");
             return Ok();
-               
+
         }
 
         public async Task PrepareExpirationAlert()
@@ -320,21 +316,21 @@ namespace BookHive.Web.Controllers
             }
         }
 
-        public SubscriberFormViewModel PopulateModel(SubscriberFormViewModel? model=null )
+        public SubscriberFormViewModel PopulateModel(SubscriberFormViewModel? model = null)
         {
             SubscriberFormViewModel viewModel = model is null ? new SubscriberFormViewModel() : model;
 
-            var Governorates =_context.Governorates.Where(x=>!x.IsDeleted).OrderBy(x => x.Name).ToList();
+            var Governorates = _context.Governorates.Where(x => !x.IsDeleted).OrderBy(x => x.Name).ToList();
 
-           
+
 
             viewModel.Governorates = _mapper.Map<IEnumerable<SelectListItem>>(Governorates);
 
             if (model?.GovernorateId > 0)
             {
-                var Areas = _context.Areas.Where(x => x.GovernorateId==model.GovernorateId && !x.IsDeleted).OrderBy(x => x.Name).ToList();
+                var Areas = _context.Areas.Where(x => x.GovernorateId == model.GovernorateId && !x.IsDeleted).OrderBy(x => x.Name).ToList();
 
-              
+
 
                 viewModel.Areas = _mapper.Map<IEnumerable<SelectListItem>>(Areas);
             }

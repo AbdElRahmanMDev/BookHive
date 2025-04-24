@@ -1,5 +1,4 @@
-﻿using BookHive.Web.consts;
-using CloudinaryDotNet.Actions;
+﻿
 using UoN.ExpressiveAnnotations.NetCore.Attributes;
 
 namespace BookHive.Web.Core.ViewModels
@@ -18,10 +17,11 @@ namespace BookHive.Web.Core.ViewModels
 
         public bool AllowExtend { get; set; }
 
-        public int TotalDelaysIndays { 
+        public int TotalDelaysIndays
+        {
             get
             {
-                return Copies.Sum(x=>x.DelayInDays);
+                return Copies.Sum(x => x.DelayInDays);
             }
         }
     }

@@ -1,9 +1,5 @@
 ﻿
-using BookHive.Web.consts;
-using BookHive.Web.Core.Models;
-using CloudinaryDotNet.Actions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
+
 
 namespace BookHive.Web.Services
 {
@@ -32,19 +28,19 @@ namespace BookHive.Web.Services
 
             }
 
-          
+
         }
 
         public async Task<(bool IsUploaded, string? errorMessage)> UploadAsync(
-            IFormFile image, 
-            string imageName, 
-            string folderPath, 
-            bool hasThumbnail) 
+            IFormFile image,
+            string imageName,
+            string folderPath,
+            bool hasThumbnail)
         {
             var extension = Path.GetExtension(image.FileName);
 
             if (!_allowedExtensions.Contains(extension))
-                return (false,Validationscs.AllowedExtension);
+                return (false, Validationscs.AllowedExtension);
 
             if (image.Length > _maxAllowedSize)
                 return (IsUploaded: false, errorMessage: Validationscs.MaxSize);

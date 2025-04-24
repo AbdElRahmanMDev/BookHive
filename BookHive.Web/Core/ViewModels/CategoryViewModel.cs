@@ -1,11 +1,9 @@
-﻿using BookHive.Web.Core.Models;
-
-namespace BookHive.Web.Core.ViewModels
+﻿namespace BookHive.Web.Core.ViewModels
 {
-    public class CategoryViewModel 
+    public class CategoryViewModel
     {
         public int Id { get; set; }
-        public string Name { get; set; } 
+        public string Name { get; set; }
 
         public bool IsDeleted { get; set; }
 

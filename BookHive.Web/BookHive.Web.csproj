@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Settings\CloudinarySettings.cs" />
+    <Compile Remove="CloudinarySettings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Extensions\CloudinarySettings.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,12 +20,13 @@
     <PackageReference Include="CloudinaryDotNet" Version="1.20.0" />
     <PackageReference Include="Hangfire" Version="1.8.18" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.36" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.36" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.36" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.35" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.36" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.36" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.18" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="8.2.0" />
     <PackageReference Include="SixLabors.ImageSharp.Web" Version="3.1.4" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.0.2" />
     <PackageReference Include="UoN.ExpressiveAnnotations.NetCore" Version="1.0.0" />
@@ -31,6 +36,11 @@
     <Folder Include="wwwroot\images\books\Thumb\" />
     <Folder Include="wwwroot\images\subscribers\Thumb\" />
     <Folder Include="wwwroot\images\users\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BookHive.Application\BookHive.Application.csproj" />
+    <ProjectReference Include="..\BookHive.Infrastructure\BookHive.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,18 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-using BookHive.Web.consts;
-using BookHive.Web.Core.Models;
+
 using BookHive.Web.Services;
-using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel;
 
 namespace BookHive.Web.Areas.Identity.Pages.Account.Manage
 {
@@ -31,7 +24,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account.Manage
             _userManager = userManager;
             _signInManager = signInManager;
             _imageService = imageService;
-            
+
         }
 
         /// <summary>
@@ -60,7 +53,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public class InputModel
         {
-            [Required,MaxLength(100, ErrorMessage = Validationscs.MaxLenErrorMessage), DisplayName("Full Name")]
+            [Required, MaxLength(100, ErrorMessage = Validationscs.MaxLenErrorMessage), DisplayName("Full Name")]
             [RegularExpression(RegexPatterns.CharactersOnly_Eng, ErrorMessage = Validationscs.OnlyEnglishLetters)]
             public string FullName { get; set; } = null!;
             /// <summary>
@@ -86,7 +79,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account.Manage
 
             Input = new InputModel
             {
-                FullName=user.FullName,
+                FullName = user.FullName,
                 PhoneNumber = phoneNumber
             };
         }
@@ -117,18 +110,20 @@ namespace BookHive.Web.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            if(Input.Avatar is not null)
+            if (Input.Avatar is not null)
             {
                 _imageService.Delete($"/images/users/{user.Id}.png");
                 var (isUploaded, errorMessage) = await _imageService.UploadAsync(Input.Avatar, $"{user.Id}.png", "/images/users", hasThumbnail: false);
-                if (!isUploaded) {
+                if (!isUploaded)
+                {
 
                     ModelState.AddModelError("Input.Avatar", errorMessage);
                     await LoadAsync(user);
                     return Page();
-                
+
                 }
-            }else if (Input.ImageRemoved)
+            }
+            else if (Input.ImageRemoved)
             {
                 _imageService.Delete($"/images/users/{user.Id}.png");
 
@@ -145,7 +140,7 @@ namespace BookHive.Web.Areas.Identity.Pages.Account.Manage
                     return RedirectToPage();
                 }
             }
-            if(Input.FullName!= user.FullName)
+            if (Input.FullName != user.FullName)
             {
                 user.FullName = Input.FullName;
                 var setFullNameResult = await _userManager.UpdateAsync(user);

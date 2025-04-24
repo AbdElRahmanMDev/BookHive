@@ -1,6 +1,5 @@
-﻿using BookHive.Web.Settings;
+﻿using BookHive.Domain.Common;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;

@@ -1,21 +1,15 @@
-
-
-using BookHive.Web.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using System.Reflection;
-using BookHive.Web.Core.Mapping;
-using UoN.ExpressiveAnnotations.NetCore.DependencyInjection;
-using BookHive.Web.consts;
+using BookHive.Domain.consts;
+using BookHive.Domain.Entities;
+using BookHive.Infrastructure;
 using BookHive.Web.Seeds;
-using BookHive.Web.TagHelpers;
 using BookHive.Web.Services;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using BookHive.Web.Settings;
-using Microsoft.AspNetCore.DataProtection;
+using BookHive.Web.Tasks;
 using Hangfire;
 using Hangfire.Dashboard;
-using BookHive.Web.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Serilog;
+using Serilog.Context;
 namespace BookHive.Web
 {
     public class Program
@@ -24,48 +18,12 @@ namespace BookHive.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            builder.Services.AddInfrastructureservices(builder.Configuration);
+            builder.Services.AddWebServices(builder);
 
-                 
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+            builder.Host.UseSerilog();
 
-            //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            //    .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultUI()
-                .AddDefaultTokenProviders();
-            builder.Services.Configure<IdentityOptions>(options =>
-            {
-                //// Default Lockout settings.
-                //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                //options.Lockout.MaxFailedAccessAttempts = 5;
-            });
-
-            builder.Services.AddDataProtection().SetApplicationName(nameof(BookHive));
-            builder.Services.AddTransient<IImageService, ImageService>();
-            builder.Services.AddTransient<IEmailSender, EmailSender>();
-            builder.Services.AddTransient<IEmailBodyBuilder, EmailBodyBuilder>();
-            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));   
-            builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
-            builder.Services.AddControllersWithViews();
-            builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(MappingProfile)));
-            builder.Services.AddExpressiveAnnotations();
-            builder.Services.AddHangfire(x => x.UseSqlServerStorage(connectionString));
-            builder.Services.AddHangfireServer();
-            builder.Services.AddAuthorization(options =>
-            {
-                options.AddPolicy("adminsOnly", policy =>
-                {
-                    policy.RequireAuthenticatedUser();
-                    policy.RequireRole(AppRoles.Admin);
-                });
-            });
-            builder.Services.Configure<SecurityStampValidatorOptions>(options =>options.ValidationInterval= TimeSpan.Zero);
-            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(nameof(CloudinarySettings)));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -75,15 +33,27 @@ namespace BookHive.Web
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.UseExceptionHandler("/Home/Error");
+            app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-          
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                Secure = CookieSecurePolicy.Always
+            });
+
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("X-Frame-Options", "Deny");
+
+                await next();
+            });
 
             app.UseRouting();
 
@@ -112,9 +82,19 @@ namespace BookHive.Web
             var emailBody = scope.ServiceProvider.GetRequiredService<IEmailBodyBuilder>();
             var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
-            HangFireTask hangFireTask = new HangFireTask(dbcontext,emailBody,emailSender);
+            HangFireTask hangFireTask = new HangFireTask(dbcontext, emailBody, emailSender);
             RecurringJob.AddOrUpdate(() => hangFireTask.PrepareExpirationAlert(), "0 14 * * *");
 
+            app.Use(async (context, next) =>
+            {
+                LogContext.PushProperty("UserId", context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                LogContext.PushProperty("UserName", context.User.FindFirst(ClaimTypes.Name)?.Value);
+
+                await next();
+            });
+
+
+            app.UseSerilogRequestLogging();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");

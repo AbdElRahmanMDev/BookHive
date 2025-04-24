@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using System.Text.Encodings.Web;
-
-namespace BookHive.Web.Services
+﻿namespace BookHive.Web.Services
 {
     public class EmailBodyBuilder : IEmailBodyBuilder
     {
@@ -11,13 +7,13 @@ namespace BookHive.Web.Services
         {
             _webHostEnvironment = webHostEnvironment;
         }
-        public string GetEmailBody(string imageUrl, string header,string url,string linkTitle, string body)
+        public string GetEmailBody(string imageUrl, string header, string url, string linkTitle, string body)
         {
             var filepath = $"{_webHostEnvironment.WebRootPath}/Templates/email.html";
             StreamReader sr = new StreamReader(filepath);
-           var _body = sr.ReadToEnd();
+            var _body = sr.ReadToEnd();
             sr.Close();
-            _body =_body
+            _body = _body
                      .Replace("[imageUrl]", imageUrl)
                      .Replace("[header]", header)
                      .Replace("[url]", url)
