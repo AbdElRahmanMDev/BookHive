@@ -1,4 +1,5 @@
-﻿namespace BookHive.Domain.Entities
+﻿
+namespace BookHive.Domain.Entities
 {
     [Index(nameof(Name), nameof(GovernorateId), IsUnique = true)]
     public class Area : BaseEntity

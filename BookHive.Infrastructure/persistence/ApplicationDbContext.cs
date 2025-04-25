@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using BookHive.Infrastructure.persistence.Configurations;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace BookHive.Infrastructure.persistence
 {
@@ -33,6 +35,9 @@ namespace BookHive.Infrastructure.persistence
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            //builder.ApplyConfiguration(new ApplicationUserConfiguration());
+            //builder.ApplyConfiguration(new AreaConfiguration());
+            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             builder.Entity<Category>().HasIndex(x => x.Name).IsUnique();
             builder.Entity<Author>().HasIndex(x => x.Name).IsUnique();
 

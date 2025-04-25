@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Reflection;
 using UoN.ExpressiveAnnotations.NetCore.DependencyInjection;
 using BookHive.Domain.Common;
+using FluentValidation;
+using BookHive.Web.Validators;
+using FluentValidation.AspNetCore;
 namespace BookHive.Web
 {
     public static class ConfigureServices
@@ -50,7 +53,12 @@ namespace BookHive.Web
                      policy.RequireRole(AppRoles.Admin);
                  });
              });
-
+            services.AddFluentValidationAutoValidation();
+            services.AddFluentValidationClientsideAdapters();
+            //services.AddScoped<IValidator<AuthorFormViewModel>, AuthorValidator>();
+            ////AddScoped<Ivalidator<ViewModelClass>,validatorClass>()
+            //services.AddScoped<IValidator<BookCopyFormViewModel>, BookCopyValidator>();
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());    
             services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
             services.Configure<CloudinarySettings>(builder.Configuration.GetSection(nameof(CloudinarySettings)));
 

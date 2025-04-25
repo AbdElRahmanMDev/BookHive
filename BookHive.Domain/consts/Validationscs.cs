@@ -8,6 +8,10 @@
 
         public const string UniqueErrorMessage = "{0} Must be Unique";
         public const string MaxLength = "Length cannot be more than {1} characters";
+        public const string MaxLengthFluentValidatoon = "Length cannot be more than {MaxLength} characters";
+        /// <summary>
+        /// Fluent Vlidation considered more simple than Data Annotations in placeholders
+        /// </summary>
         public const string AllowedExtension = ".png .jpeg .jpg  is Allowed Only ";
         public const string MaxSize = "The file cannot be more than 2MB ";
         public const string BookAuthorError = "Book with same Author is not Allowed";
@@ -26,6 +30,8 @@
         public const string NotAvaialableForRental = "this book/copy is not avalable for Rental";
 
         public const string EmptyImage = "Please select an image.";
+        public const string EditionNumberFluentValidation = "Edition Number should be between {From} and {To}";
+        public const string EditionNumber = "Edition Number should be between {1} and {2}";
         public const string IsBlackListed = "This Subscriber is BlackListed .";
         public const string InActive = "This Subscriber is InActive .";
 

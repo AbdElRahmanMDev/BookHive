@@ -1,7 +1,5 @@
-﻿
-
-
-
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace BookHive.Web.Controllers
 {
@@ -10,11 +8,13 @@ namespace BookHive.Web.Controllers
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IValidator<AuthorFormViewModel> _validator;
 
-        public AuthorController(IApplicationDbContext context, IMapper mapper)
+        public AuthorController(IApplicationDbContext context, IMapper mapper, IValidator<AuthorFormViewModel> validator)
         {
             _context = context;
             _mapper = mapper;
+            _validator = validator;
         }
 
 
@@ -36,6 +36,12 @@ namespace BookHive.Web.Controllers
         [HttpPost]
         public IActionResult Create(AuthorFormViewModel authorFormView)
         {
+            //Incase you use both data annotation and fluent validation 
+            //var validator = _validator.Validate(authorFormView);
+            //if (!validator.IsValid)
+            //{
+            //    validator.AddToModelState(ModelState);
+            //}
             if (ModelState.IsValid) //When request is send using Ajax Form
             {
                 return BadRequest();
