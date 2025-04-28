@@ -12,3 +12,5 @@ global using System.Security.Claims;
 global using BookHive.Domain.Enums;
 global using BookHive.Application.Common.Interfaces;
 global using BookHive.Infrastructure.persistence;
+namespace BookHive.Application.Services;
+

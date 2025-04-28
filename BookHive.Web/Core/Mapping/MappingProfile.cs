@@ -32,6 +32,12 @@ namespace BookHive.Web.Core.Mapping
            ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Categories.Select(x => x.Category!
            .Name)));
 
+            
+
+
+            CreateMap<Book, BookRowViewModel>().
+           ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author!.Name));
+
             CreateMap<BookCopy, BookCopyViewModel>().
           ForMember(dest => dest.BookTitle, opt => opt.MapFrom(src => src.Book!.Title)).
           ForMember(dest => dest.BookId, opt => opt.MapFrom(src => src.BookId)).

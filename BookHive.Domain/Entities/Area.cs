@@ -13,9 +13,7 @@ namespace BookHive.Domain.Entities
 
         public Governorate? Governorate { get; set; }
 
-        public string test { get; set; }
-
-
+   
 
     }
 }

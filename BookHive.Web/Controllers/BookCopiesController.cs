@@ -1,22 +1,23 @@
-﻿
+﻿using Microsoft.Identity.Client;
+using System.Linq.Expressions;
 
 namespace BookHive.Web.Controllers
 {
     [Authorize(Roles = AppRoles.Archieve)]
     public class BookCopiesController : Controller
     {
-        private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
-        public BookCopiesController(IApplicationDbContext context, IMapper mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public BookCopiesController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork=unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
         public IActionResult Create(int bookid)
         {
-            var book = _context.Books.Find(bookid);
+            var book = _unitOfWork.Books.GetById(bookid);
             if (book is null)
             {
                 return NotFound();
@@ -38,7 +39,7 @@ namespace BookHive.Web.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest();
-            var book = _context.Books.SingleOrDefault(x => x.Id == bookCopy.BookId);
+            var book = _unitOfWork.Books.GetById(bookCopy.BookId);
             if (book is null)
             {
                 return NotFound();
@@ -52,22 +53,32 @@ namespace BookHive.Web.Controllers
             //you add new copy through navigation Property in book model
             book.Copies.Add(NewCopy);
 
-            _context.SaveChanges();
+            _unitOfWork.Complete();
             var bookviewModel = _mapper.Map<BookCopyViewModel>(NewCopy);
 
 
             return PartialView("_bookCopyRow", bookviewModel);
         }
 
+      
+
         public IActionResult Rentals(int id)
         {
-            var RentalsCopy = _context.RentalCopies
-                .Include(x => x.Rentals)
-                .ThenInclude(x => x!.Subscriber)
-                .Include(x => x.bookCopy)
-                .Where(x => x.BookCopyId == id)
-                .OrderByDescending(x => x.RentalDate)
-                .ToList();
+            var RentalsCopy = _unitOfWork.RentalCopies
+                .FindAll(x => x.BookCopyId == id,
+                x => x.
+                Include(x => x.Rentals)!.
+                ThenInclude(x => x!.Subscriber!),
+                orderBy:c=>c.RentalDate,
+                orderByDirection: OrderBy.Descending);
+            
+                //_context.RentalCopies
+                //.Include(x => x.Rentals)
+                //.ThenInclude(x => x!.Subscriber)
+                //.Include(x => x.bookCopy)
+                //.Where(x => x.BookCopyId == id)
+                //.OrderByDescending(x => x.RentalDate)
+                //.ToList();
 
 
 
@@ -80,8 +91,9 @@ namespace BookHive.Web.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-
-            var bookCopy = _context.BookCopies.Include(c => c.Book).SingleOrDefault(c => c.Id == id);
+       
+            var bookCopy = _unitOfWork.BookCopies.Find(c => c.Id == id,c=>c.Include(x=>x.Book)!);
+                //_context.BookCopies.Include(c => c.Book).SingleOrDefault(c => c.Id == id);
             if (bookCopy is null)
             {
 
@@ -104,7 +116,8 @@ namespace BookHive.Web.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var copy = _context.BookCopies.Include(c => c.Book).SingleOrDefault(c => c.Id == model.Id);
+            var copy = _unitOfWork.BookCopies.Find(x => x.Id == model.Id, x => x.Include(x => x.Book)!);
+                //_context.BookCopies.Include(c => c.Book).SingleOrDefault(c => c.Id == model.Id);
 
             if (copy is null)
                 return NotFound();
@@ -114,8 +127,8 @@ namespace BookHive.Web.Controllers
             copy.LastUpdateOn = DateTime.Now;
             copy.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
-            _context.SaveChanges();
-
+            //_context.SaveChanges();
+            _unitOfWork.Complete();
             var viewModel = _mapper.Map<BookCopyViewModel>(copy);
 
             return PartialView("_BookCopyRow", viewModel);
@@ -125,7 +138,7 @@ namespace BookHive.Web.Controllers
         [HttpPost]
         public IActionResult ToggleStatus(int id)
         {
-            var copy = _context.BookCopies.Find(id);
+            var copy = _unitOfWork.BookCopies.GetById(id);
             if (copy is null)
             {
                 return NotFound();
@@ -134,7 +147,7 @@ namespace BookHive.Web.Controllers
             copy.LastUpdateOn = DateTime.Now;
             copy.IsDeleted = !copy.IsDeleted;
             copy.LastUpdatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-            _context.SaveChanges();
+            _unitOfWork.Complete();
 
             return Ok(copy.LastUpdateOn);
         }

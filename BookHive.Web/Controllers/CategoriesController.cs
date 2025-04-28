@@ -1,7 +1,5 @@
-﻿
-
-
-
+﻿using BookHive.Application.Common.Interfaces.Repositories;
+using BookHive.Infrastructure;
 namespace BookHive.Web.Controllers
 {
     [Authorize(Roles = AppRoles.Archieve)]
@@ -9,14 +7,17 @@ namespace BookHive.Web.Controllers
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
-        public CategoriesController(IApplicationDbContext context, IMapper mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public CategoriesController(IApplicationDbContext context, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _context = context;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
+
         public IActionResult Index()
         {
-            List<Category> categories = _context.categories.AsNoTracking().ToList();
+            var categories = _unitOfWork.Categories.GetAll();
             var categoryViewModels = _mapper.Map<IEnumerable<CategoryViewModel>>(categories);
             return View(categoryViewModels);
         }
@@ -37,8 +38,11 @@ namespace BookHive.Web.Controllers
             }
             var category = _mapper.Map<Category>(categoryFormView);
             category.CreatedById = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-            _context.categories.Add(category);
-            _context.SaveChanges();
+            //_context.categories.Add(category);
+            //_context.SaveChanges();
+            _unitOfWork.Categories.Add(category);
+            _unitOfWork.Complete();
+
             var categoryView = _mapper.Map<CategoryViewModel>(category);
             return PartialView("_CategoryRow", categoryView);
 

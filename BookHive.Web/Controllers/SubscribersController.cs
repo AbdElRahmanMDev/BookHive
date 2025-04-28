@@ -31,6 +31,11 @@ namespace BookHive.Web.Controllers
         }
         public IActionResult Index()
         {
+
+            var subscriber = _context.Subscribers.Where(x => x.IsDeleted);
+            var books = _context.Books
+                .ToList()  
+                .Where(book => book.IsDeleted);
             return View();
         }
 

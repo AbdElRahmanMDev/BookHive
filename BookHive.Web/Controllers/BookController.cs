@@ -1,4 +1,6 @@
-﻿using BookHive.Web.Extensions;
+﻿using BookHive.Application.Services.Books;
+using BookHive.Domain.DTOS;
+using BookHive.Web.Extensions;
 using BookHive.Web.Services;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,17 +21,23 @@ namespace BookHive.Web.Controllers
         private int _maxAllowedSize = 2097152;
         private readonly Cloudinary _cloudinary;
         private readonly IImageService _imageService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IbookService _bookService;
         public BookController(IApplicationDbContext context
             , IMapper mapper,
             IWebHostEnvironment environment
             , IOptions<CloudinarySettings> options,
-            IImageService imageService
+            IImageService imageService,
+            IbookService bookService,
+           IUnitOfWork unitOfWork
             )
         {
             _context = context;
             _mapper = mapper;
             _environment = environment;
             _imageService = imageService;
+            _unitOfWork = unitOfWork;
+            _bookService = bookService;
             var account = new Account()
             {
                 ApiKey = options.Value.APIKey,
@@ -46,28 +54,12 @@ namespace BookHive.Web.Controllers
 
         public IActionResult GetBooks()
         {
-            var skip = int.Parse(Request.Form["start"]);
-            var take = int.Parse(Request.Form["length"]);
-            var SortByColumnIndex = Request.Form["order[0][column]"];
-            var sortByColumnName = Request.Form[$"columns[{SortByColumnIndex}][name]"];
-            var sortColumnDirection = Request.Form["order[0][dir]"];
-            var SearchBy = Request.Form["search[value]"];
+            var dto = Request.Form.GetFilters();
+           
 
-
-            IQueryable<Book> books = _context.Books.
-                Include(x => x.Author).
-                Include(x => x.Categories).
-                ThenInclude(x => x.Category);
-
-            if (!string.IsNullOrEmpty(SearchBy))
-            {
-                books = books.Where(x => x.Title.Contains(SearchBy) || x.Author!.Name.Contains(SearchBy));
-            }
-
-            books = books.OrderBy($"{sortByColumnName} {sortColumnDirection}");
-            var data = books.Skip(skip).Take(take).ToList();
-            var recordsTotal = books.Count();
-            var bookViewModel = _mapper.Map<IEnumerable<BookViewModel>>(data);
+            var (books, recordsTotal) = _bookService.GetFiltered(dto);
+       
+            var bookViewModel = _mapper.ProjectTo<BookViewModel>(books).ToList();
             var jsonData = new { recordsFiltered = recordsTotal, recordsTotal, data = bookViewModel };
             return Ok(jsonData);
         }
@@ -75,19 +67,22 @@ namespace BookHive.Web.Controllers
 
         public IActionResult Details(int id)
         {
-            var book = _context.Books.
-                Include(x => x.Author).
-                Include(x => x.Copies).
-                ThenInclude(x => x.Rentals).
-                Include(x => x.Categories).
-                ThenInclude(x => x.Category).
-                FirstOrDefault(x => x.Id == id);
-            if (book is null)
+            var query = _unitOfWork.Books.GetDetails();
+                
+                //_unitOfWork.Books.GetQueryable().
+                //Include(x => x.Author).
+                //Include(x => x.Copies).
+                //ThenInclude(x => x.Rentals).
+                //Include(x => x.Categories).
+                //ThenInclude(x => x.Category);
+            var bookViewModel = _mapper.ProjectTo<BookViewModel>(query).FirstOrDefault(x => x.Id == id);
+            
+
+            if (bookViewModel is null)
             {
                 return NotFound();
             }
 
-            var bookViewModel = _mapper.Map<BookViewModel>(book);
             return View(bookViewModel);
         }
         [HttpGet]

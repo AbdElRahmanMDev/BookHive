@@ -2,6 +2,7 @@ using BookHive.Domain.consts;
 using BookHive.Domain.Entities;
 using BookHive.Infrastructure;
 using BookHive.Web.Seeds;
+using BookHive.Application;
 using BookHive.Web.Services;
 using BookHive.Web.Tasks;
 using Hangfire;
@@ -18,8 +19,9 @@ namespace BookHive.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddInfrastructureservices(builder.Configuration);
-            builder.Services.AddWebServices(builder);
+
+            builder.Services.AddApplicationservices()
+                .AddInfrastructureservices(builder.Configuration).AddWebServices(builder);
 
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
             builder.Host.UseSerilog();
@@ -33,12 +35,13 @@ namespace BookHive.Web
             }
             else
             {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseExceptionHandler("/Home/Error");
-            app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
-
+         
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

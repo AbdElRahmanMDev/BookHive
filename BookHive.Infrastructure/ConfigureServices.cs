@@ -1,4 +1,5 @@
 ﻿using BookHive.Infrastructure.persistence;
+using BookHive.Infrastructure.persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,11 @@ namespace BookHive.Infrastructure
             services.AddDbContext<ApplicationDbContext>(options =>
                  options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),builder=>builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
+            //services.AddScoped<IRepository<Author>, Repository<Author>>();  
+            //services.AddScoped<IRepository<Category>, Repository<Category>>();  
+
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
